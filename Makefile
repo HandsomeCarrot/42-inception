@@ -1,36 +1,42 @@
-COMPOSE := docker compose
 COMPOSE_FILE := srcs/docker-compose.yml
+COMPOSE := docker compose -f $(COMPOSE_FILE)
 
-.PHONY: all clean fclean re up down start stop build ps help
+.PHONY: all clean fclean re up down start stop restart build ps logs help
 .DEFAULT_GOAL := all
 
 all: up
 
-clean:
-	$(COMPOSE) -f $(COMPOSE_FILE) down --remove-orphans
-
-fclean:
-	$(COMPOSE) -f $(COMPOSE_FILE) down --rmi all --volumes --remove-orphans
-
-re: fclean all
-
 up:
-	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
+	$(COMPOSE) up -d --build
 
 build:
-	$(COMPOSE) -f $(COMPOSE_FILE) build
+	$(COMPOSE) build
 
 start:
-	$(COMPOSE) -f $(COMPOSE_FILE) start
+	$(COMPOSE) start
 
 stop:
-	$(COMPOSE) -f $(COMPOSE_FILE) stop
+	$(COMPOSE) stop
+
+restart:
+	$(COMPOSE) restart
 
 down:
-	$(COMPOSE) -f $(COMPOSE_FILE) down
+	$(COMPOSE) down
 
 ps:
-	$(COMPOSE) -f $(COMPOSE_FILE) ps
+	$(COMPOSE) ps
+
+logs:
+	$(COMPOSE) logs
+
+clean:
+	$(COMPOSE) down --remove-orphans
+
+fclean:
+	$(COMPOSE) down --rmi all --volumes --remove-orphans
+
+re: fclean all
 
 help:
 	@echo "Available targets:"
