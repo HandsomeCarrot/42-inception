@@ -1,3 +1,8 @@
+name: Inception
+
 services:
-  mariadb:
-    build: requirements/mariadb/.
+  nginx:
+    build: requirements/nginx/.
+
+#   mariadb:
+#     build: requirements/mariadb/.
