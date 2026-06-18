@@ -11,19 +11,19 @@
 # - variable expansion
 set -eu
 
-echo "[MARIADB ENTRY SCRIPT] executing..."
+echo "[ENTRY SCRIPT] executing..."
 
 if [ ! -d "${MARIADB_DATADIR}/mysql" ]; then
-	echo "[MARIADB ENTRY SCRIPT] no database found, creating ..."
+	echo "[ENTRY SCRIPT] no database found, creating ..."
 	mariadb-install-db \
 		--defaults-file="${MARIADB_CONFIG}" \
 		--datadir="${MARIADB_DATADIR}" \
 		--user=mysql \
 		--skip-test-db
 else
-	echo "[MARIADB ENTRY SCRIPT] found database"
+	echo "[ENTRY SCRIPT] found database"
 fi
 
-echo "[MARIADB ENTRY SCRIPT] finished."
+echo "[ENTRY SCRIPT] finished."
 
 exec "$@"
