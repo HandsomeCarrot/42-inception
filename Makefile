@@ -7,7 +7,7 @@ COMPOSE := docker compose -f $(COMPOSE_FILE)
 all: up
 
 up:
-	$(COMPOSE) up -d --build
+	$(COMPOSE) up --build #-d # TODO: add this flag forfinal version
 
 build:
 	$(COMPOSE) build

@@ -4,7 +4,7 @@ FROM alpine:3.23
 # official repo — all in a single layer so build-only tools don't
 # persist in the final image.
 #
-# The expected key file is injected via a BuildKit bind mount so it
+# The expected key file is injected via a bind mount so it
 # never lands in an image layer.
 RUN --mount=type=bind,source=nginx_expected_key.txt,target=/tmp/nginx_expected_key.txt \
 	set -eux; \
@@ -32,3 +32,16 @@ RUN --mount=type=bind,source=nginx_expected_key.txt,target=/tmp/nginx_expected_k
 	# Register the nginx stable repository and install nginx.
 	echo "@nginx https://nginx.org/packages/alpine/v3.23/main" >> /etc/apk/repositories; \
 	apk add --no-cache nginx@nginx
+
+# copy over the nginx config file
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# TODO: delete
+# echo 127.0.0.1	vpoka.42.fr www.vpoka.42.fr >> /etc/hosts
+# RUN	apk update \
+# 	&& apk add curl
+
+# TODO: change to 443
+EXPOSE 80
+
+CMD [ "nginx", "-g", "daemon off;" ]
