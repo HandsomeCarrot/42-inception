@@ -1,4 +1,3 @@
-# ALPINE
 # container base system
 FROM alpine:3.23
 
@@ -9,8 +8,8 @@ ENV MARIADB_CONFIG=/etc/my.cnf
 ENV SCRIPT_DIR=/usr/local/bin
 
 # copy external files to container
-COPY my.cnf ${MARIADB_CONFIG}
-COPY docker-entry.sh ${SCRIPT_DIR}/docker-entry.sh
+COPY config/my.cnf			${MARIADB_CONFIG}
+COPY config/docker-entry.sh	${SCRIPT_DIR}/docker-entry.sh
 # COPY healthcheck.sh ${SCRIPT_DIR}/healthcheck.sh
 
 # Install MariaDB server and client.

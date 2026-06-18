@@ -6,7 +6,7 @@ FROM alpine:3.23
 #
 # The expected key file is injected via a bind mount so it
 # never lands in an image layer.
-RUN --mount=type=bind,source=nginx_expected_key.txt,target=/tmp/nginx_expected_key.txt \
+RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_expected_key.txt \
 	set -eux; \
 	\
 	# Install build dependencies as a virtual package so they can
