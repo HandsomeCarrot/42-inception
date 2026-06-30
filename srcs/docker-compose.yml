@@ -5,13 +5,15 @@ services:
     build: requirements/nginx/.
     ports:
       - 80:80
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
 
   # mariadb:
   #   build: requirements/mariadb/.
     # volumes:
     #   - database:/var/lib/mysql
     # restart: always
-
+#
 # volumes:
 #   database:
 #     driver: local
@@ -19,10 +21,12 @@ services:
 #       type: none
 #       o: bind
 #       device: /home/viktor/data/database # TODO: change viktor -> vpoka, make sure dir exists
-
+#
 #   website:
 #     driver: local
 #     driver_opts:
 #       type: none
 #       o: bind
 #       device: /home/viktor/data/website # TODO: change viktor -> vpoka, make sure dir exists
+# networks:
+# secrets:
