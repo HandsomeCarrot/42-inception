@@ -6,7 +6,7 @@ DATA_DIR := /home/viktor/data
 DB_DIR := $(DATA_DIR)/database
 WEB_DIR := $(DATA_DIR)/website
 
-.PHONY: all clean fclean re up down start stop restart build ps logs help
+.PHONY: all clean fclean re up down start stop restart build ps logs env help
 .DEFAULT_GOAL := all
 
 all: up
@@ -42,8 +42,24 @@ clean: down
 fclean: down
 	$(COMPOSE) down --volumes --remove-orphans --rmi all
 	sudo rm -rf $(DATA_DIR)
+	rm -f ./srcs/.env
 
 re: fclean all
+
+define ENV_TEMPLATE
+DOMAIN_NAME=
+
+# Mariadb config
+DB_ROOT_PASSWORD=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+endef
+export ENV_TEMPLATE
+
+env:
+	@echo "$$ENV_TEMPLATE" > srcs/.env
+	@printf "\x1b[32mCreated template '.env' file in 'srcs/'\x1b[0m\n"
 
 help:
 	@echo "Available targets:"
@@ -57,4 +73,5 @@ help:
 	@echo "  clean     - Stop containers and remove orphans"
 	@echo "  fclean    - Full cleanup: remove containers, images, volumes, orphans"
 	@echo "  re        - Full rebuild: fclean then all"
+	@echo "  env       - Generate a .env file with all variables needed decalred (!overwrites the file if it existed!)"
 	@echo "  help      - Display this help message"
