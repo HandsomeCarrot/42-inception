@@ -1,32 +1,41 @@
 name: Inception
 
 services:
-  nginx:
-    build: requirements/nginx/.
-    ports:
-      - 80:80
-    environment:
-      - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+  # nginx:
+  #   build: requirements/nginx/.
+  #   ports:
+  #     - 80:80
+  #   environment:
+  #     - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
 
-  # mariadb:
-  #   build: requirements/mariadb/.
-    # volumes:
-    #   - database:/var/lib/mysql
-    # restart: always
-#
-# volumes:
-#   database:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       o: bind
-#       device: /home/viktor/data/database # TODO: change viktor -> vpoka, make sure dir exists
-#
+  mariadb:
+    build: requirements/mariadb/.
+    environment:
+      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - database:/home/data
+    restart: always
+
+volumes:
+  database:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/viktor/data/database # TODO: change viktor -> vpoka, make sure dir exists
+
 #   website:
 #     driver: local
 #     driver_opts:
 #       type: none
 #       o: bind
 #       device: /home/viktor/data/website # TODO: change viktor -> vpoka, make sure dir exists
+
+# TODO:
 # networks:
+
+# TODO: probably not needed though.
 # secrets:

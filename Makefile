@@ -1,13 +1,19 @@
 COMPOSE_FILE := srcs/docker-compose.yml
 COMPOSE := docker compose -f $(COMPOSE_FILE)
 
+# Bind mount host directories (must match docker-compose.yml)
+DATA_DIR := /home/viktor/data
+DB_DIR := $(DATA_DIR)/database
+WEB_DIR := $(DATA_DIR)/website
+
 .PHONY: all clean fclean re up down start stop restart build ps logs help
 .DEFAULT_GOAL := all
 
 all: up
 
 up:
-	$(COMPOSE) up --build #-d # TODO: add this flag forfinal version
+	mkdir -p $(DB_DIR) $(WEB_DIR)
+	$(COMPOSE) up --build #-d # TODO: add this flag for final version
 
 build:
 	$(COMPOSE) build
@@ -30,11 +36,12 @@ ps:
 logs:
 	$(COMPOSE) logs
 
-clean:
-	$(COMPOSE) down --remove-orphans
+clean: down
+	$(COMPOSE) rm -f
 
-fclean:
-	$(COMPOSE) down --rmi all --volumes --remove-orphans
+fclean: down
+	$(COMPOSE) down --volumes --remove-orphans --rmi all
+	sudo rm -rf $(DATA_DIR)
 
 re: fclean all
 

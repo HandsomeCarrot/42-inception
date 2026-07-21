@@ -1,5 +1,10 @@
 #!/bin/sh
 
+log()
+{
+	printf "\x1b[33m[ENTRY-SCRIPT]\x1b[0m %s\n" "$*"
+}
+
 # changes behaviour of shell failures
 # -e
 #   shell exits if any command fails (does not change the pipe behaviour, where only the last command determines the outcome)
@@ -11,19 +16,35 @@
 # - variable expansion
 set -eu
 
-echo "[ENTRY SCRIPT] executing..."
+log "starting script"
 
-if [ ! -d "${MARIADB_DATADIR}/mysql" ]; then
-	echo "[ENTRY SCRIPT] no database found, creating ..."
-	mariadb-install-db \
-		--defaults-file="${MARIADB_CONFIG}" \
-		--datadir="${MARIADB_DATADIR}" \
-		--user=mysql \
-		--skip-test-db
+if [ ! -d "/home/data/mysql" ]; then
+	log "creating system database and tables 'mysql'."
+	mariadb-install-db --skip-test-db
 else
-	echo "[ENTRY SCRIPT] found database"
+	log "system database is already set up: skipped step!"
 fi
 
-echo "[ENTRY SCRIPT] finished."
+if [ ! -d "/home/data/${DB_NAME}" ]; then
+	log "couldn't find database '${DB_NAME}': creating new database."
+
+	log "replacing environment variables in setup.sql."
+	envsubst '${DB_ROOT_PASSWORD} ${DB_NAME} ${DB_USER} ${DB_PASSWORD}' < "/home/config/setup.sql" > "/tmp/setup.sql"
+
+	log "bootstrapping mariadb."
+	mariadbd --bootstrap < /tmp/setup.sql
+	log "bootstrap complete."
+else
+	log "database '${DB_NAME}' already exists: skipped step!"
+fi
+
+if [ -f "/tmp/setup.sql" ]; then
+	log "removing substituted 'setup.sql'"
+	rm -f /tmp/setup.sql
+else
+	log "substituted 'setup.sql' already removed: skipped step!"
+fi
+
+log "script end"
 
 exec "$@"
