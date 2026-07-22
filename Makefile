@@ -13,7 +13,7 @@ all: up
 
 up:
 	mkdir -p $(DB_DIR) $(WEB_DIR)
-	$(COMPOSE) up --build #-d # TODO: add this flag for final version
+	$(COMPOSE) up --build -d
 
 build:
 	$(COMPOSE) build
