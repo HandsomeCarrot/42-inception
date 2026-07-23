@@ -5,7 +5,7 @@ FROM alpine:3.23
 # - mariadb        : the MariaDB database server
 # - mariadb-client : provides CLI tools (mysql, mariadb-install-db, etc.)
 # --no-cache       : avoids storing the apk package index, keeping the image smaller
-RUN	set -ex; \
+RUN set -ex; \
 	apk --no-cache add mariadb=~11.4 mariadb-client=~11.4 gettext-envsubst; \
 # creates a directory that is required by mariadb, so it can create a socket?
 	mkdir -p /run/mysqld; \
@@ -17,7 +17,8 @@ COPY config/setup.sql /home/config/setup.sql
 COPY config/docker-entry.sh /home/config/docker-entry.sh
 
 # give execution permission for entry script
-RUN	chmod +x /home/config/docker-entry.sh
+RUN set -ex; \
+    chmod +x /home/config/docker-entry.sh
 
 # inform that port 3306 of this container, should be exposed/usable
 EXPOSE 3306

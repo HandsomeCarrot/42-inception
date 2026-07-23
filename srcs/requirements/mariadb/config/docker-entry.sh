@@ -5,16 +5,7 @@ log()
 	printf "\x1b[33m[ENTRY-SCRIPT]\x1b[0m %s\n" "$*"
 }
 
-# changes behaviour of shell failures
-# -e
-#   shell exits if any command fails (does not change the pipe behaviour, where only the last command determines the outcome)
-# -u:
-#   expansions fail with consequences (also prints error message)
-#
-# In combination they make the script exit/stop if any error happens along the way.
-# - command failure
-# - variable expansion
-set -eu
+set -eux
 
 log "starting script"
 

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eux
+
 DOMAIN_NAME="${DOMAIN_NAME}"
 
 if [ ! -f /etc/nginx/ssl/site.crt ]; then
