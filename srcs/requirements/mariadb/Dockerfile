@@ -6,7 +6,7 @@ FROM alpine:3.23
 # - mariadb-client : provides CLI tools (mysql, mariadb-install-db, etc.)
 # --no-cache       : avoids storing the apk package index, keeping the image smaller
 RUN	set -ex; \
-	apk --no-cache add mariadb mariadb-client gettext-envsubst; \
+	apk --no-cache add mariadb=~11.4 mariadb-client=~11.4 gettext-envsubst; \
 # creates a directory that is required by mariadb, so it can create a socket?
 	mkdir -p /run/mysqld; \
 	chown -R mysql:mysql /run/mysqld;
