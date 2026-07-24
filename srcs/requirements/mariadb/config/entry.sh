@@ -7,35 +7,42 @@ log()
 
 set -eu
 
-log "starting script"
+log "START"
 
+# TODO: add envsubst for my.cnf?
+
+log "checking if base databases are created"
 if [ ! -d "/home/data/mysql" ]; then
-	log "creating system database and tables 'mysql'."
+	log "  -> error: creating..."
 	mariadb-install-db --skip-test-db
+	log "  -> done!"
 else
-	log "system database is already set up: skipped step!"
+	log "  -> success!"
 fi
 
+log "checking if wordpress database exists"
 if [ ! -d "/home/data/${DB_NAME}" ]; then
-	log "couldn't find database '${DB_NAME}': creating new database."
+	log "  -> error: creating..."
 
-	log "replacing environment variables in setup.sql."
+	log "    -> replacing environment variables in setup.sql"
 	envsubst '${DB_ROOT_PASSWORD} ${DB_NAME} ${DB_USER} ${DB_PASSWORD}' < "/home/setup.sql" > "/tmp/setup.sql"
 
-	log "bootstrapping mariadb."
+	log "    -> bootstrapping mariadb"
 	mariadbd --bootstrap < /tmp/setup.sql
-	log "bootstrap complete."
+	log "  -> done!"
 else
-	log "database '${DB_NAME}' already exists: skipped step!"
+	log "  -> success!"
 fi
 
+log "checking if substituted file 'setup.sql' was removed"
 if [ -f "/tmp/setup.sql" ]; then
-	log "removing substituted 'setup.sql'"
+	log "  -> error: removing..."
 	rm -f /tmp/setup.sql
+	log "  -> done!"
 else
-	log "substituted 'setup.sql' already removed: skipped step!"
+	log "  -> success!"
 fi
 
-log "script end"
+log "END"
 
 exec "$@"
