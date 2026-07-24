@@ -20,19 +20,19 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
 
-  # wordpress:
-  #   build: ./requirements/wordpress
-  #   depends_on:
-  #     mariadb:
-  #       condition: service_healthy
-  #       restart: true
-  #   restart: always
-  #   volumes:
-  #     - website:/home/data:rw
-  #   environment:
-  #     - DB_NAME=${DB_NAME}
-  #     - DB_USER=${DB_USER}
-  #     - DB_PASSWORD=${DB_PASSWORD}
+  wordpress:
+    build: ./requirements/wordpress
+    depends_on:
+      mariadb:
+        condition: service_healthy
+        restart: true
+    restart: always
+    volumes:
+      - website:/home/data:rw
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
 
 volumes:
   database:

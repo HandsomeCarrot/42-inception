@@ -106,7 +106,7 @@ unpause:
 
 ps:
 	$(log_target)
-	@$(COMPOSE) ps
+	@$(COMPOSE) ps -a
 
 logs:
 	$(log_target)
