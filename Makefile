@@ -1,24 +1,31 @@
+# --- Variables ---------------------------------------------------------
+.DEFAULT_GOAL := all
+
+# Bind mount host directories (must match docker-compose.yml)
+LOGIN := $(USER)
+DATA_DIR := /home/$(LOGIN)/data
+DB_DIR := $(DATA_DIR)/database
+WEB_DIR := $(DATA_DIR)/website
+export LOGIN DATA_DIR DB_DIR WEB_DIR
+
+# Alias for docker compose command that specifies projects docker-compose file
 COMPOSE_FILE := srcs/docker-compose.yml
 COMPOSE := docker compose -f $(COMPOSE_FILE)
 
-# Bind mount host directories (must match docker-compose.yml)
-DATA_DIR := /home/viktor/data
-DB_DIR := $(DATA_DIR)/database
-WEB_DIR := $(DATA_DIR)/website
+define INCEPTION_ENV_TEMPLATE
+# These are all the variables that are used throughout the services.
+# Variables that are filled out can be overwritten, those are just default values that have no special meaning.
 
-define ENV_TEMPLATE
 DOMAIN_NAME=
 
 # Mariadb config
 DB_ROOT_PASSWORD=
-DB_NAME=
-DB_USER=
+DB_NAME=wordpress
+DB_USER=wordpress
 DB_PASSWORD=
-endef
-export ENV_TEMPLATE
 
-.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup distclean help
-.DEFAULT_GOAL := all
+endef
+export INCEPTION_ENV_TEMPLATE
 
 # --- Logging helpers ---------------------------------------------------------
 # Colors
@@ -31,6 +38,7 @@ C_BOLD  := \x1b[1m
 define log_target
 	@printf "$(C_BOLD)$(C_CYAN)==>$(C_RESET) $(C_BOLD)%s$(C_RESET)\n" "$@"
 endef
+
 # Sub-step within a target, e.g.     -> Building images
 # (takes the message as $(1) -> call with $(call log_step,message))
 define log_step
@@ -38,6 +46,7 @@ define log_step
 endef
 
 # --- Default rules ----------------------------------
+.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup distclean help
 
 all: up
 
@@ -109,7 +118,7 @@ setup:
 	$(log_target)
 	$(call log_step,Checking srcs/.env)
 	@if [ ! -f srcs/.env ]; then \
-		echo "$$ENV_TEMPLATE" > srcs/.env; \
+		echo "$$INCEPTION_ENV_TEMPLATE" > srcs/.env; \
 		printf "$(C_CYAN)   ->$(C_RESET) wrote srcs/.env from template\n"; \
 		printf "$(C_CYAN)   ->$(C_RESET) fill in srcs/.env, then run make again\n"; \
 	else \
