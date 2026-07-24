@@ -20,7 +20,7 @@ if [ ! -d "/home/data/${DB_NAME}" ]; then
 	log "couldn't find database '${DB_NAME}': creating new database."
 
 	log "replacing environment variables in setup.sql."
-	envsubst '${DB_ROOT_PASSWORD} ${DB_NAME} ${DB_USER} ${DB_PASSWORD}' < "/home/config/setup.sql" > "/tmp/setup.sql"
+	envsubst '${DB_ROOT_PASSWORD} ${DB_NAME} ${DB_USER} ${DB_PASSWORD}' < "/home/setup.sql" > "/tmp/setup.sql"
 
 	log "bootstrapping mariadb."
 	mariadbd --bootstrap < /tmp/setup.sql
