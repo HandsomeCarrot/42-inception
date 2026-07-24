@@ -1,7 +1,7 @@
 # --- Variables ---------------------------------------------------------
 .DEFAULT_GOAL := all
 
-# Bind mount host directories (must match docker-compose.yml)
+# Bind mount host directories
 LOGIN := $(USER)
 DATA_DIR := /home/$(LOGIN)/data
 DB_DIR := $(DATA_DIR)/database

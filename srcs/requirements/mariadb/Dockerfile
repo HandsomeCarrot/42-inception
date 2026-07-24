@@ -1,17 +1,21 @@
 # container base system
 FROM alpine:3.23
 
-# Install MariaDB server and client.
 RUN set -eux; \
-	apk --no-cache add mariadb=~11.4 mariadb-client=~11.4 gettext-envsubst; \
+# Install MariaDB server and client.
+	apk --no-cache add \
+		mariadb=~11.4 \
+		mariadb-client=~11.4 \
+		gettext-envsubst \
+	; \
 # creates a directory that is required by mariadb, so it can create a socket?
 	mkdir -p /run/mysqld; \
 	chown -R mysql:mysql /run/mysqld;
 
 # copy external files to container
 COPY --chmod=+x ./config/entry.sh /home/config/
-COPY ./config/my.cnf /home/config/
 COPY ./config/setup.sql /home/config/
+COPY ./config/my.cnf /etc/my.cnf
 
 # inform that port 3306 of this container, should be exposed to the compose network
 EXPOSE 3306
