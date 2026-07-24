@@ -19,7 +19,6 @@ RUN	set -eux; \
 # - install:
 #   - required packages
 #   - php extensions
-# - rename php executables to standard names (remove 85 from them)
 RUN	set -eux; \
 	apk --cache=no add \
 		php85 \
@@ -29,7 +28,6 @@ RUN	set -eux; \
 		php85-mbstring \
 		php85-xml \
 		php85-dom \
-		php85-openssl \
 		php85-curl \
 		php85-exif \
 		php85-fileinfo \
@@ -37,9 +35,19 @@ RUN	set -eux; \
 		php85-zip \
 		php85-sodium \
 		php85-iconv \
-		php85-bcmath \
-	; \
-	ln -s /usr/bin/php85 /usr/bin/php; \
-	ln -s /usr/sbin/php-fpm85 /usr/sbin/php-fpm;
+	;
 
-CMD ["ash"]
+# - rename php executables to standard names (remove 85 from them)
+RUN	set -eux; \
+	ln -s /usr/bin/php85 /usr/bin/php; \
+	ln -s /usr/sbin/php-fpm85 /usr/sbin/php-fpm; \
+	echo "memory_limit=512M" > /etc/php85/conf.d/99_memory.ini;
+
+COPY ./config/wp-cli.yml ./wp-cli.yml
+COPY --chmod=+x ./config/entry.sh /usr/bin/entry
+
+EXPOSE 9000
+
+ENTRYPOINT ["entry"]
+
+CMD ["php-fpm", "--nodaemonize"]
