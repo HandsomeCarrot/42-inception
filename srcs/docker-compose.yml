@@ -15,10 +15,10 @@ services:
     volumes:
       - database:/home/data:rw
     environment:
-      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:?}
+      - DB_NAME=${MARIADB_WORDPRESS_DATABASE_NAME:?}
+      - DB_USER=${MARIADB_WORDPRESS_USER_NAME:?}
+      - DB_PASSWORD=${MARIADB_WORDPRESS_USER_PASSWORD:?}
 
   wordpress:
     build: ./requirements/wordpress
@@ -30,9 +30,17 @@ services:
     volumes:
       - website:/home/data:rw
     environment:
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${MARIADB_WORDPRESS_DATABASE_NAME:?}
+      - DB_USER=${MARIADB_WORDPRESS_USER_NAME:?}
+      - DB_PASSWORD=${MARIADB_WORDPRESS_USER_PASSWORD:?}
+      - DB_TABLE_PREFIX=${MARIADB_WORDPRESS_DATABASE_TABLE_PREFIX:?}
+      - DB_CHARSET=${MARIADB_DATABASE_CHARSET:?}
+      - DB_COLLATE=${MARIADB_DATABASE_COLLATE:?}
+      - DOMAIN=${WORDPRESS_DOMAIN:?}
+      - TITLE=${WORDPRESS_WEBSITE_TITLE:?}
+      - WORDPRESS_ADMIN=${WORDPRESS_ADMIN_USER_NAME:?}
+      - WORDPRESS_ADMIN_PASSWORD=${WORDPRESS_ADMIN_PASSWORD:?}
+      - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL:?}
 
 volumes:
   database:

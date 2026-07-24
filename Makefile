@@ -14,15 +14,30 @@ COMPOSE := docker compose -f $(COMPOSE_FILE)
 
 define INCEPTION_ENV_TEMPLATE
 # These are all the variables that are used throughout the services.
-# Variables that are filled out can be overwritten, those are just default values that have no special meaning.
+# They are split into 'mandatory' and 'optional' variables. As some variables should be defined by the user and others have a default value.
 
-DOMAIN_NAME=
+# TODO: move password variables into docker secrets and include the .env file in the git repo
+# Mandatory -----------------------------------------------------------------
+#   you have to fill out these variables, they should not be left empty
 
-# Mariadb config
-DB_ROOT_PASSWORD=
-DB_NAME=wordpress
-DB_USER=wordpress
-DB_PASSWORD=
+MARIADB_ROOT_PASSWORD=test
+MARIADB_WORDPRESS_USER_PASSWORD=test
+
+WORDPRESS_ADMIN_PASSWORD=test
+
+# Optional -----------------------------------------------------------------
+#   these variables are filled out with default values which can be changed.
+
+MARIADB_WORDPRESS_DATABASE_NAME=wordpress
+MARIADB_WORDPRESS_USER_NAME=wordpress
+MARIADB_WORDPRESS_DATABASE_TABLE_PREFIX=wordpress-
+MARIADB_DATABASE_CHARSET=utf8mb4
+MARIADB_DATABASE_COLLATE=utf8mb4_uca1400_ai_ci
+
+WORDPRESS_DOMAIN=vpoka.42.fr
+WORDPRESS_WEBSITE_TITLE=Inception
+WORDPRESS_ADMIN_USER_NAME=admin
+WORDPRESS_ADMIN_EMAIL=invalid@e.mail
 
 endef
 export INCEPTION_ENV_TEMPLATE
