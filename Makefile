@@ -24,6 +24,7 @@ MARIADB_ROOT_PASSWORD=test
 MARIADB_WORDPRESS_USER_PASSWORD=test
 
 WORDPRESS_ADMIN_PASSWORD=test
+WORDPRESS_USER_PASSWORD=test
 
 # Optional -----------------------------------------------------------------
 #   these variables are filled out with default values which can be changed.
@@ -36,8 +37,10 @@ MARIADB_DATABASE_COLLATE=utf8mb4_uca1400_ai_ci
 
 WORDPRESS_DOMAIN=vpoka.42.fr
 WORDPRESS_WEBSITE_TITLE=Inception
-WORDPRESS_ADMIN_USER_NAME=admin
+WORDPRESS_ADMIN_NAME=owner
 WORDPRESS_ADMIN_EMAIL=invalid@e.mail
+WORDPRESS_USER_NAME=carrot
+WORDPRESS_USER_EMAIL=2invalid@e.mail
 
 endef
 export INCEPTION_ENV_TEMPLATE

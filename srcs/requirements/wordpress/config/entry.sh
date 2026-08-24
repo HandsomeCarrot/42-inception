@@ -7,22 +7,30 @@ log()
 
 set -eu
 
-log "START"
+log "Starting WordPress entry script"
 
-log "checking if wordpress core files are on system"
+log "Checking if admin username contains 'admin'"
+normalized_admin_name=$(echo "$WORDPRESS_ADMIN_NAME" | tr '[:upper:]' '[:lower:]')
+case "$normalized_admin_name" in
+	*admin*)
+		log "  -> fail: admin username contains 'admin', aborting"
+		exit 1
+		;;
+esac
+log "  -> ok"
+
+log "Checking if WordPress core files are present"
 if ! wp core version >/dev/null 2>&1; then
-	log "  -> error: downloading..."
+	log "  -> missing, downloading WordPress core"
 	wp core download --version=6.9
-	log "  -> done!"
+	log "  -> download complete"
 else
-	log "  -> success!"
+	log "  -> present"
 fi
 
-
-log "checking if wordpress config file exists"
+log "Checking if wp-config.php exists"
 if ! wp config path >/dev/null 2>&1; then
-	log "  -> error: creating..."
-	# generate the wordpress config with the wp-cli
+	log "  -> missing, generating wp-config.php"
 	wp config create \
 		--dbname=${DB_NAME} \
 		--dbuser=${DB_USER} \
@@ -31,26 +39,48 @@ if ! wp config path >/dev/null 2>&1; then
 		--dbprefix=${DB_TABLE_PREFIX} \
 		--dbcharset=${DB_CHARSET} \
 		--dbcollate=${DB_COLLATE}
-	log "  done!"
+	log "  -> wp-config.php created"
 else
-	log "  -> success!"
+	log "  -> present"
 fi
 
-log "checking if database is set up for wordpress"
+log "Checking if WordPress is installed in the database"
 if ! wp core is-installed >/dev/null 2>&1; then
-	log "  -> error: setting up..."
+	log "  -> not installed, running wp core install"
 	wp core install \
 		--url=${DOMAIN} \
 		--title=${TITLE} \
-		--admin_user=${WORDPRESS_ADMIN} \
+		--admin_user=${WORDPRESS_ADMIN_NAME} \
 		--admin_password=${WORDPRESS_ADMIN_PASSWORD} \
 		--admin_email=${WORDPRESS_ADMIN_EMAIL} \
 		--skip-email
-	log "  -> done!"
+	log "  -> installation complete"
 else
-	log "  -> success!"
+	log "  -> installed"
 fi
 
-log "END"
+log "Checking if non-admin user exists"
+if ! wp user get "$WORDPRESS_USER_NAME" >/dev/null 2>$1; then
+	log "  -> not found, creating user '$WORDPRESS_USER_NAME'"
+	wp user create \
+		"$WORDPRESS_USER_NAME" \
+		"$WORDPRESS_USER_EMAIL" \
+		--role=author \
+		--user_pass="$WORDPRESS_USER_PASSWORD"
+	log "  -> user created"
+else
+	log "  -> exists"
+fi
+
+log "Checking ownership of /home/data"
+if [ "$(stat -c '%U:%G' /home/data)" != "wordpress-data:wordpress-data" ]; then
+	log "  -> wrong ownership, fixing"
+	chown -R wordpress-data:wordpress-data /home/data
+	log "  -> ownership corrected"
+else
+	log "  -> correct"
+fi
+
+log "Done"
 
 exec "$@"

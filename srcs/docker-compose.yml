@@ -25,7 +25,7 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-        restart: true
+        # restart: true
     restart: always
     volumes:
       - website:/home/data:rw
@@ -38,9 +38,12 @@ services:
       - DB_COLLATE=${MARIADB_DATABASE_COLLATE:?}
       - DOMAIN=${WORDPRESS_DOMAIN:?}
       - TITLE=${WORDPRESS_WEBSITE_TITLE:?}
-      - WORDPRESS_ADMIN=${WORDPRESS_ADMIN_USER_NAME:?}
+      - WORDPRESS_ADMIN_NAME=${WORDPRESS_ADMIN_NAME:?}
       - WORDPRESS_ADMIN_PASSWORD=${WORDPRESS_ADMIN_PASSWORD:?}
-      - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL:?}
+      - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL}
+      - WORDPRESS_USER_NAME=${WORDPRESS_USER_NAME:?}
+      - WORDPRESS_USER_EMAIL=${WORDPRESS_USER_EMAIL:?}
+      - WORDPRESS_USER_PASSWORD=${WORDPRESS_USER_PASSWORD:?}
 
 volumes:
   database:
@@ -58,7 +61,9 @@ volumes:
       device: ${WEB_DIR:?}
 
 # TODO:
-# networks:
+networks:
+  default:
+    # internal: true # if uncommented, installation of wordpress files from internet fails, as this setting does not allow ANY connection to the outside
 
-# TODO: probably not needed though.
+# TODO: 
 # secrets:

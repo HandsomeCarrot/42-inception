@@ -41,13 +41,14 @@ RUN	set -eux; \
 RUN	set -eux; \
 	ln -s /usr/bin/php85 /usr/bin/php; \
 	ln -s /usr/sbin/php-fpm85 /usr/sbin/php-fpm; \
-	echo "memory_limit=512M" > /etc/php85/conf.d/99_memory.ini;
+	addgroup -g 101 -S wordpress-data; \
+	adduser -u 101 -G wordpress-data -H -D -S wordpress-data;
 
 COPY ./config/wp-cli.yml ./wp-cli.yml
 COPY --chmod=+x ./config/entry.sh /usr/bin/entry
-
-EXPOSE 9000
+COPY ./config/php.ini /etc/php85/conf.d/99_inception.ini
+COPY ./config/php-fpm.conf /etc/php85/php-fpm.d/www.conf
 
 ENTRYPOINT ["entry"]
 
-CMD ["php-fpm", "--nodaemonize"]
+CMD ["php-fpm85", "-F"]
