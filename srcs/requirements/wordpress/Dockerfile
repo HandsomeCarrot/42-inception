@@ -52,3 +52,6 @@ COPY ./config/php-fpm.conf /etc/php85/php-fpm.d/www.conf
 ENTRYPOINT ["entry"]
 
 CMD ["php-fpm85", "-F"]
+
+# exposed to the compose network
+EXPOSE 9000
