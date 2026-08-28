@@ -8,32 +8,23 @@ DB_DIR := $(DATA_DIR)/database
 WEB_DIR := $(DATA_DIR)/website
 export LOGIN DATA_DIR DB_DIR WEB_DIR
 
+# Secret files (kept out of git, mounted into the containers via docker secrets)
+SECRETS_DIR := srcs/secrets
+SECRETS := mariadb_root_password mariadb_wordpress_user_password wordpress_admin_password wordpress_user_password
+
 # Alias for docker compose command that specifies projects docker-compose file
 COMPOSE_FILE := srcs/docker-compose.yml
 COMPOSE := docker compose -f $(COMPOSE_FILE)
 
 define INCEPTION_ENV_TEMPLATE
 # These are all the variables that are used throughout the services.
-# They are split into 'mandatory' and 'optional' variables. As some variables should be defined by the user and others have a default value.
-
-# TODO: move password variables into docker secrets and include the .env file in the git repo
-# Mandatory -----------------------------------------------------------------
-#   you have to fill out these variables, they should not be left empty
-
-MARIADB_ROOT_PASSWORD=test
-MARIADB_WORDPRESS_USER_PASSWORD=test
-
-WORDPRESS_ADMIN_PASSWORD=test
-WORDPRESS_USER_PASSWORD=test
-
-# Optional -----------------------------------------------------------------
-#   these variables are filled out with default values which can be changed.
+# Passwords are stored in docker secrets (see $(SECRETS_DIR)), so this file only holds non-sensitive configuration.
 
 MARIADB_WORDPRESS_DATABASE_NAME=wordpress
 MARIADB_WORDPRESS_USER_NAME=wordpress
 MARIADB_WORDPRESS_DATABASE_TABLE_PREFIX=wordpress_
-MARIADB_DATABASE_CHARSET=utf8mb4
-MARIADB_DATABASE_COLLATE=utf8mb4_uca1400_ai_ci
+DATABASE_CHARSET=utf8mb4
+DATABASE_COLLATE=utf8mb4_uca1400_ai_ci
 
 WORDPRESS_DOMAIN=vpoka.42.fr
 WORDPRESS_WEBSITE_TITLE=Inception
@@ -144,13 +135,20 @@ setup:
 	fi
 	$(call log_step,Creating host directories $(DB_DIR) and $(WEB_DIR))
 	@mkdir -p $(DB_DIR) $(WEB_DIR)
+	$(call log_step,Checking secret files in $(SECRETS_DIR))
+	@for secret in $(SECRETS); do \
+		if [ ! -f "$(SECRETS_DIR)/$$secret.txt" ]; then \
+			echo test > "$(SECRETS_DIR)/$$secret.txt"; \
+			printf "$(C_CYAN)   ->$(C_RESET) wrote $(SECRETS_DIR)/$$secret.txt with placeholder \"test\"\n"; \
+		fi; \
+	done
 
 distclean: fclean
 	$(log_target)
 	$(call log_step,Removing host data directory $(DATA_DIR))
 	@sudo rm -rf $(DATA_DIR)
-	$(call log_step,Removing srcs/.env)
-	@rm -f srcs/.env
+	$(call log_step,Removing srcs/.env and secret files)
+	@rm -f srcs/.env && rm -f $(SECRETS_DIR)/*.txt
 
 help:
 	@echo "Available targets:"
@@ -170,6 +168,6 @@ help:
 	@echo "  - ps        - List running containers"
 	@echo "  - logs      - View output of containers"
 	@echo "- Extra commands"
-	@echo "  - setup     - Create host data directories and generate srcs/.env template (skips if already exists)"
+	@echo "  - setup     - Create host data directories and generate srcs/.env + missing secret templates (skips existing files)"
 	@echo "  - distclean - fclean + remove host data directory and srcs/.env (!all persistent data and credentials will be lost!)"
 	@echo "  - help      - Display this help message"

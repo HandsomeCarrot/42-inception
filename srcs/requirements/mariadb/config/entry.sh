@@ -9,7 +9,14 @@ set -eu
 
 log "START"
 
-# TODO: add envsubst for my.cnf?
+log "extracting secrets into environment variables"
+MARIADB_ROOT_PASSWORD=$(cat "$MARIADB_ROOT_PASSWORD_FILE")
+MARIADB_WORDPRESS_USER_PASSWORD=$(cat "$MARIADB_WORDPRESS_USER_PASSWORD_FILE")
+export MARIADB_ROOT_PASSWORD MARIADB_WORDPRESS_USER_PASSWORD
+
+log "replacing environment variables in my.cnf"
+envsubst '$DATABASE_CHARSET $DATABASE_COLLATE $MARIADB_WORDPRESS_USER_PASSWORD' < /etc/my.cnf > /tmp/my.cnf
+cat /tmp/my.cnf > /etc/my.cnf
 
 log "checking if base databases are created"
 if [ ! -d "/home/data/mysql" ]; then
@@ -25,7 +32,7 @@ if [ ! -d "/home/data/${DB_NAME}" ]; then
 	log "  -> error: creating..."
 
 	log "    -> replacing environment variables in setup.sql"
-	envsubst '${DB_ROOT_PASSWORD} ${DB_NAME} ${DB_USER} ${DB_PASSWORD}' < "/home/setup.sql" > "/tmp/setup.sql"
+	envsubst '${MARIADB_ROOT_PASSWORD} ${DB_NAME} ${DB_USER} ${MARIADB_WORDPRESS_USER_PASSWORD}' < "/home/setup.sql" > "/tmp/setup.sql"
 
 	log "    -> bootstrapping mariadb"
 	mariadbd --bootstrap < /tmp/setup.sql
