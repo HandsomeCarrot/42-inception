@@ -55,7 +55,7 @@ define log_step
 endef
 
 # --- Default rules ----------------------------------
-.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup distclean help
+.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup setup-env setup-dirs setup-secrets distclean distclean-data distclean-config help
 
 all: up
 
@@ -123,7 +123,9 @@ logs:
 
 # --- Extra rules ----------------------------------
 
-setup:
+setup: setup-env setup-dirs setup-secrets
+
+setup-env:
 	$(log_target)
 	$(call log_step,Checking srcs/.env)
 	@if [ ! -f srcs/.env ]; then \
@@ -133,8 +135,14 @@ setup:
 	else \
 		printf "$(C_CYAN)   ->$(C_RESET) srcs/.env already exists, skipping\n"; \
 	fi
+
+setup-dirs:
+	$(log_target)
 	$(call log_step,Creating host directories $(DB_DIR) and $(WEB_DIR))
 	@mkdir -p $(DB_DIR) $(WEB_DIR)
+
+setup-secrets:
+	$(log_target)
 	$(call log_step,Checking secret files in $(SECRETS_DIR))
 	@for secret in $(SECRETS); do \
 		if [ ! -f "$(SECRETS_DIR)/$$secret.txt" ]; then \
@@ -143,31 +151,41 @@ setup:
 		fi; \
 	done
 
-distclean: fclean
+distclean: fclean distclean-data distclean-config
+
+distclean-data:
 	$(log_target)
 	$(call log_step,Removing host data directory $(DATA_DIR))
 	@sudo rm -rf $(DATA_DIR)
+
+distclean-config:
+	$(log_target)
 	$(call log_step,Removing srcs/.env and secret files)
 	@rm -f srcs/.env && rm -f $(SECRETS_DIR)/*.txt
 
 help:
-	@echo "Available targets:"
-	@echo "- Standard commands"
-	@echo "  - all       - (default) Run setup then build and start containers"
-	@echo "  - clean     - Stop containers and remove orphans"
-	@echo "  - fclean    - Remove containers, images, volumes and orphans (keeps host data and .env)"
-	@echo "  - re        - Full rebuild: fclean then all"
-	@echo "- Docker compose commands"
-	@echo "  - up        - Build and start containers in detached mode"
-	@echo "  - down      - Stop and remove containers"
-	@echo "  - start     - Start existing containers"
-	@echo "  - stop      - Stop running containers"
-	@echo "  - pause     - Pause all services"
-	@echo "  - unpause   - Unpause all services"
-	@echo "  - build     - Build or rebuild services"
-	@echo "  - ps        - List running containers"
-	@echo "  - logs      - View output of containers"
-	@echo "- Extra commands"
-	@echo "  - setup     - Create host data directories and generate srcs/.env + missing secret templates (skips existing files)"
-	@echo "  - distclean - fclean + remove host data directory and srcs/.env (!all persistent data and credentials will be lost!)"
-	@echo "  - help      - Display this help message"
+	@printf "$(C_BOLD)Available targets:$(C_RESET) %s\n"
+	@printf "$(C_BOLD)- Standard commands$(C_RESET) %s\n"
+	@echo "  - all              : (default) Run setup then build and start containers"
+	@echo "  - clean            : Stop containers and remove orphans"
+	@echo "  - fclean           : Remove containers, images, volumes and orphans (keeps host data and .env)"
+	@echo "  - re               : Full rebuild: fclean then all"
+	@printf "$(C_BOLD)- Docker compose commands$(C_RESET) %s\n"
+	@echo "  - up               : Build and start containers in detached mode"
+	@echo "  - down             : Stop and remove containers"
+	@echo "  - start            : Start existing containers"
+	@echo "  - stop             : Stop running containers"
+	@echo "  - pause            : Pause all services"
+	@echo "  - unpause          : Unpause all services"
+	@echo "  - build            : Build or rebuild services"
+	@echo "  - ps               : List running containers"
+	@echo "  - logs             : View output of containers"
+	@printf "$(C_BOLD)- Extra commands$(C_RESET) %s\n"
+	@echo "  - setup            : Run all setup steps below"
+	@echo "  - setup-env        : Generate srcs/.env from template (skips if exists)"
+	@echo "  - setup-dirs       : Create host data directories"
+	@echo "  - setup-secrets    : Generate missing secret placeholder files"
+	@echo "  - distclean        : fclean + remove host data and config (!all persistent data lost!)"
+	@echo "  - distclean-data   : Remove host data directory"
+	@echo "  - distclean-config : Remove srcs/.env and secret files"
+	@echo "  - help             : Display this help message"
