@@ -41,9 +41,10 @@ export INCEPTION_ENV_TEMPLATE
 
 # --- Logging helpers ---------------------------------------------------------
 # Colors
-C_RESET := \x1b[0m
-C_CYAN  := \x1b[36m
-C_BOLD  := \x1b[1m
+C_RESET  := \x1b[0m
+C_CYAN   := \x1b[36m
+C_YELLOW := \x1b[33m
+C_BOLD   := \x1b[1m
 
 # Banner announcing the target, e.g.  ==> up
 # (uses $@, so no argument needed -> call with plain $(log_target))
@@ -54,11 +55,11 @@ endef
 # Sub-step within a target, e.g.     -> Building images
 # (takes the message as $(1) -> call with $(call log_step,message))
 define log_step
-	@printf "$(C_CYAN)   ->$(C_RESET) %s\n" "$(1)"
+	@printf "$(C_CYAN)    ->$(C_RESET) %s\n" "$(1)"
 endef
 
 # --- Default rules ----------------------------------
-.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup setup-env setup-dirs setup-secrets distclean distclean-data distclean-config help
+.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup setup-env setup-dirs setup-secrets distclean rm-data rm-env rm-secrets help
 
 all: up
 
@@ -127,45 +128,52 @@ logs:
 # --- Extra rules ----------------------------------
 
 setup: setup-env setup-dirs setup-secrets
+	$(log_target)
+	@printf '$(C_YELLOW)[WARNING] Before running the project, please fill out:$(C_RESET)\n\t$(C_BOLD)1.$(C_RESET) srcs/.env\n\t$(C_BOLD)2.$(C_RESET) srcs/secrets/*.txt\n'
 
 setup-env:
 	$(log_target)
-	$(call log_step,Checking srcs/.env)
+	$(call log_step,Checking 'srcs/.env')
 	@if [ ! -f srcs/.env ]; then \
 		echo "$$INCEPTION_ENV_TEMPLATE" > srcs/.env; \
-		printf "$(C_CYAN)   ->$(C_RESET) wrote srcs/.env from template\n"; \
-		printf "$(C_CYAN)   ->$(C_RESET) fill in srcs/.env, then run make again\n"; \
+		printf "$(C_CYAN)      ->$(C_RESET) wrote 'srcs/.env' from template\n"; \
 	else \
-		printf "$(C_CYAN)   ->$(C_RESET) srcs/.env already exists, skipping\n"; \
+		printf "$(C_CYAN)      ->$(C_RESET) 'srcs/.env' already exists, skipping\n"; \
 	fi
 
 setup-dirs:
 	$(log_target)
-	$(call log_step,Creating host directories $(DB_DIR) and $(WEB_DIR))
+	$(call log_step,Creating host directories '$(DB_DIR)' and '$(WEB_DIR)')
 	@mkdir -p $(DB_DIR) $(WEB_DIR)
 
 setup-secrets:
 	$(log_target)
-	$(call log_step,Checking secret files in $(SECRETS_DIR))
+	$(call log_step,Creating secret files in $(SECRETS_DIR))
 	@for secret in $(SECRETS); do \
 		if [ ! -f "$(SECRETS_DIR)/$$secret.txt" ]; then \
-			echo -n test > "$(SECRETS_DIR)/$$secret.txt"; \
-			printf "$(C_CYAN)   ->$(C_RESET) wrote $(SECRETS_DIR)/$$secret.txt with placeholder \"test\"\n"; \
+			touch "$(SECRETS_DIR)/$$secret.txt"; \
+			printf "$(C_CYAN)      ->$(C_RESET) created '$(SECRETS_DIR)/$$secret.txt' (empty)\n"; \
+		else \
+			printf "$(C_CYAN)      ->$(C_RESET) '$(SECRETS_DIR)/$$secret.txt' already exists\n"; \
 		fi; \
 	done
-	$(call log_step,All secrets created!)
 
-distclean: fclean distclean-data distclean-config
+distclean: fclean rm-data rm-env rm-secrets
 
-distclean-data:
+rm-data:
 	$(log_target)
-	$(call log_step,Removing host data directory $(DATA_DIR))
+	$(call log_step,Removing host data directory '$(DATA_DIR)')
 	@sudo rm -rf $(DATA_DIR)
 
-distclean-config:
+rm-env:
 	$(log_target)
-	$(call log_step,Removing srcs/.env and secret files)
-	@rm -f srcs/.env && rm -f $(SECRETS_DIR)/*.txt
+	$(call log_step,Removing 'srcs/.env')
+	@rm -f srcs/.env
+
+rm-secrets:
+	$(log_target)
+	$(call log_step,Removing secret files)
+	@rm -f $(SECRETS_DIR)/*.txt
 
 help:
 	@printf "$(C_BOLD)Available targets:$(C_RESET) %s\n"
@@ -190,6 +198,7 @@ help:
 	@echo "  - setup-dirs       : Create host data directories"
 	@echo "  - setup-secrets    : Generate missing secret placeholder files"
 	@echo "  - distclean        : fclean + remove host data and config (!all persistent data lost!)"
-	@echo "  - distclean-data   : Remove host data directory"
-	@echo "  - distclean-config : Remove srcs/.env and secret files"
+	@echo "  - rm-data   : Remove host data directory"
+	@echo "  - rm-env    : Remove srcs/.env"
+	@echo "  - rm-secrets: Remove secret files"
 	@echo "  - help             : Display this help message"
