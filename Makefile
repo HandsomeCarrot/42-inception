@@ -10,7 +10,10 @@ export LOGIN DATA_DIR DB_DIR WEB_DIR
 
 # Secret files (kept out of git, mounted into the containers via docker secrets)
 SECRETS_DIR := srcs/secrets
-SECRETS := mariadb_root_password mariadb_wordpress_user_password wordpress_admin_password wordpress_user_password
+SECRETS :=	mariadb_root_password \
+			mariadb_user_password \
+			wordpress_admin_password \
+			wordpress_user_password
 
 # Alias for docker compose command that specifies projects docker-compose file
 COMPOSE_FILE := srcs/docker-compose.yml
@@ -20,14 +23,14 @@ define INCEPTION_ENV_TEMPLATE
 # These are all the variables that are used throughout the services.
 # Passwords are stored in docker secrets (see $(SECRETS_DIR)), so this file only holds non-sensitive configuration.
 
-MARIADB_WORDPRESS_DATABASE_NAME=wordpress
-MARIADB_WORDPRESS_USER_NAME=wordpress
-MARIADB_WORDPRESS_DATABASE_TABLE_PREFIX=wordpress_
-DATABASE_CHARSET=utf8mb4
-DATABASE_COLLATE=utf8mb4_uca1400_ai_ci
+WORDPRESS_DB_NAME=wordpress
+WORDPRESS_DB_USER=wordpress
+WORDPRESS_DB_TABLE_PREFIX=wordpress_
+DB_CHARSET=utf8mb4
+DB_COLLATE=utf8mb4_uca1400_ai_ci
 
 WORDPRESS_DOMAIN=vpoka.42.fr
-WORDPRESS_WEBSITE_TITLE=Inception
+WORDPRESS_TITLE=Inception
 WORDPRESS_ADMIN_NAME=owner
 WORDPRESS_ADMIN_EMAIL=invalid@e.mail
 WORDPRESS_USER_NAME=carrot
@@ -146,10 +149,11 @@ setup-secrets:
 	$(call log_step,Checking secret files in $(SECRETS_DIR))
 	@for secret in $(SECRETS); do \
 		if [ ! -f "$(SECRETS_DIR)/$$secret.txt" ]; then \
-			echo test > "$(SECRETS_DIR)/$$secret.txt"; \
+			echo -n test > "$(SECRETS_DIR)/$$secret.txt"; \
 			printf "$(C_CYAN)   ->$(C_RESET) wrote $(SECRETS_DIR)/$$secret.txt with placeholder \"test\"\n"; \
 		fi; \
 	done
+	$(call log_step,All secrets created!)
 
 distclean: fclean distclean-data distclean-config
 

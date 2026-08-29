@@ -15,15 +15,15 @@ services:
     volumes:
       - database:/home/data:rw
     environment:
-      - DB_NAME=${MARIADB_WORDPRESS_DATABASE_NAME:?}
-      - DB_USER=${MARIADB_WORDPRESS_USER_NAME:?}
-      - DATABASE_CHARSET=${DATABASE_CHARSET:?}
-      - DATABASE_COLLATE=${DATABASE_COLLATE:?}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:?}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:?}
+      - DB_CHARSET=${DB_CHARSET:?}
+      - DB_COLLATE=${DB_COLLATE:?}
       - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/mariadb_root_password
-      - MARIADB_WORDPRESS_USER_PASSWORD_FILE=/run/secrets/mariadb_wordpress_user_password
+      - MARIADB_USER_PASSWORD_FILE=/run/secrets/mariadb_user_password
     secrets:
       - mariadb_root_password
-      - mariadb_wordpress_user_password
+      - mariadb_user_password
 # ------------------------------------------------------------------------------
   wordpress:
     build: ./requirements/wordpress
@@ -35,22 +35,22 @@ services:
     volumes:
       - website:/home/data:rw
     environment:
-      - DATABASE_NAME=${MARIADB_WORDPRESS_DATABASE_NAME:?}
-      - DATABASE_USER=${MARIADB_WORDPRESS_USER_NAME:?}
-      - DATABASE_TABLE_PREFIX=${MARIADB_WORDPRESS_DATABASE_TABLE_PREFIX:?}
-      - DATABASE_CHARSET=${DATABASE_CHARSET:?}
-      - DATABASE_COLLATE=${DATABASE_COLLATE:?}
-      - DOMAIN=${WORDPRESS_DOMAIN:?}
-      - TITLE=${WORDPRESS_WEBSITE_TITLE:?}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:?}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:?}
+      - WORDPRESS_DB_TABLE_PREFIX=${WORDPRESS_DB_TABLE_PREFIX:?}
+      - DB_CHARSET=${DB_CHARSET:?}
+      - DB_COLLATE=${DB_COLLATE:?}
+      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
+      - WORDPRESS_TITLE=${WORDPRESS_TITLE:?}
       - WORDPRESS_ADMIN_NAME=${WORDPRESS_ADMIN_NAME:?}
       - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL}
       - WORDPRESS_USER_NAME=${WORDPRESS_USER_NAME:?}
       - WORDPRESS_USER_EMAIL=${WORDPRESS_USER_EMAIL:?}
-      - MARIADB_WORDPRESS_USER_PASSWORD_FILE=/run/secrets/mariadb_wordpress_user_password
+      - MARIADB_USER_PASSWORD_FILE=/run/secrets/mariadb_user_password
       - WORDPRESS_ADMIN_PASSWORD_FILE=/run/secrets/wordpress_admin_password
       - WORDPRESS_USER_PASSWORD_FILE=/run/secrets/wordpress_user_password
     secrets:
-      - mariadb_wordpress_user_password
+      - mariadb_user_password
       - wordpress_admin_password
       - wordpress_user_password
 # ==============================================================================
@@ -77,8 +77,8 @@ networks:
 secrets:
   mariadb_root_password:
     file: ./secrets/mariadb_root_password.txt
-  mariadb_wordpress_user_password:
-    file: ./secrets/mariadb_wordpress_user_password.txt
+  mariadb_user_password:
+    file: ./secrets/mariadb_user_password.txt
   wordpress_admin_password:
     file: ./secrets/wordpress_admin_password.txt
   wordpress_user_password:

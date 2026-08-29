@@ -10,7 +10,7 @@ set -eu
 log "Starting WordPress entry script"
 
 log "Extracting secrets into environment variables"
-DATABASE_PASSWORD=$(cat "$MARIADB_WORDPRESS_USER_PASSWORD_FILE")
+DATABASE_PASSWORD=$(cat "$MARIADB_USER_PASSWORD_FILE")
 WORDPRESS_ADMIN_PASSWORD=$(cat "$WORDPRESS_ADMIN_PASSWORD_FILE")
 WORDPRESS_USER_PASSWORD=$(cat "$WORDPRESS_USER_PASSWORD_FILE")
 
@@ -35,15 +35,15 @@ fi
 
 log "Checking if wp-config.php exists"
 if ! wp config path >/dev/null 2>&1; then
-	log "  -> missing, generating wp-config.php"
-	wp config create \
-		--dbname="$DATABASE_NAME" \
-		--dbuser="$DATABASE_USER" \
-		--dbpass="$DATABASE_PASSWORD" \
-		--dbhost=mariadb \
-		--dbprefix="$DATABASE_TABLE_PREFIX" \
-		--dbcharset="$DATABASE_CHARSET" \
-		--dbcollate="$DATABASE_COLLATE"
+    log "  -> missing, generating wp-config.php"
+    wp config create \
+        --dbname="$WORDPRESS_DB_NAME" \
+        --dbuser="$WORDPRESS_DB_USER" \
+        --dbpass="$DATABASE_PASSWORD" \
+        --dbhost=mariadb \
+        --dbprefix="$WORDPRESS_DB_TABLE_PREFIX" \
+        --dbcharset="$DB_CHARSET" \
+        --dbcollate="$DB_COLLATE"
 	log "  -> wp-config.php created"
 else
 	log "  -> present"
@@ -53,8 +53,8 @@ log "Checking if WordPress is installed in the database"
 if ! wp core is-installed >/dev/null 2>&1; then
 	log "  -> not installed, running wp core install"
 	wp core install \
-		--url="$DOMAIN" \
-		--title="$TITLE" \
+		--url="$WORDPRESS_DOMAIN" \
+		--title="$WORDPRESS_TITLE" \
 		--admin_user="$WORDPRESS_ADMIN_NAME" \
 		--admin_password="$WORDPRESS_ADMIN_PASSWORD" \
 		--admin_email="$WORDPRESS_ADMIN_EMAIL" \
