@@ -24,6 +24,8 @@ services:
     secrets:
       - mariadb_root_password
       - mariadb_user_password
+    networks:
+      - backend
 # ------------------------------------------------------------------------------
   wordpress:
     build: ./requirements/wordpress
@@ -53,6 +55,8 @@ services:
       - mariadb_user_password
       - wordpress_admin_password
       - wordpress_user_password
+    networks:
+      - backend
 # ==============================================================================
 volumes:
   database:
@@ -69,11 +73,6 @@ volumes:
       o: bind
       device: ${WEB_DIR:?}
 # ==============================================================================
-# TODO: define an internal docker network
-networks:
-  default:
-    # internal: true # if uncommented, installation of wordpress files from internet fails, as this setting does not allow ANY connection to the outside
-# ==============================================================================
 secrets:
   mariadb_root_password:
     file: ./secrets/mariadb_root_password.txt
@@ -83,3 +82,9 @@ secrets:
     file: ./secrets/wordpress_admin_password.txt
   wordpress_user_password:
     file: ./secrets/wordpress_user_password.txt
+# ==============================================================================
+# TODO: define an internal docker network
+networks:
+  backend:
+    driver: bridge
+    # internal: true # if uncommented, installation of wordpress files from internet fails, as this setting does not allow ANY connection to the outside
