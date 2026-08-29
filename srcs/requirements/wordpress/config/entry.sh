@@ -5,14 +5,29 @@ log()
 	printf "\x1b[33m[ENTRY-SCRIPT]\x1b[0m %s\n" "$*"
 }
 
+validate_secret()
+{
+	if [ ! -s "$1" ]; then
+		log "error: secret '$1' is empty"
+		exit 1
+	fi
+}
+
 set -eu
 
 log "Starting WordPress entry script"
+
+log "Validating secrets are not empty"
+validate_secret "$MARIADB_USER_PASSWORD_FILE"
+validate_secret "$WORDPRESS_ADMIN_PASSWORD_FILE"
+validate_secret "$WORDPRESS_USER_PASSWORD_FILE"
+log "  -> success!"
 
 log "Extracting secrets into environment variables"
 DATABASE_PASSWORD=$(cat "$MARIADB_USER_PASSWORD_FILE")
 WORDPRESS_ADMIN_PASSWORD=$(cat "$WORDPRESS_ADMIN_PASSWORD_FILE")
 WORDPRESS_USER_PASSWORD=$(cat "$WORDPRESS_USER_PASSWORD_FILE")
+log "  -> success!"
 
 log "Checking if admin username contains 'admin'"
 normalized_admin_name=$(echo "$WORDPRESS_ADMIN_NAME" | tr '[:upper:]' '[:lower:]')

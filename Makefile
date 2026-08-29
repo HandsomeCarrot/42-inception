@@ -8,7 +8,7 @@ DB_DIR := $(DATA_DIR)/database
 WEB_DIR := $(DATA_DIR)/website
 export LOGIN DATA_DIR DB_DIR WEB_DIR
 
-# Secret files (kept out of git, mounted into the containers via docker secrets)
+# Secret files
 SECRETS_DIR := srcs/secrets
 SECRETS :=	mariadb_root_password \
 			mariadb_user_password \
@@ -25,7 +25,7 @@ define INCEPTION_ENV_TEMPLATE
 
 WORDPRESS_DB_NAME=wordpress
 WORDPRESS_DB_USER=wordpress
-WORDPRESS_DB_TABLE_PREFIX=wordpress_
+WORDPRESS_DB_TABLE_PREFIX=random_
 DB_CHARSET=utf8mb4
 DB_COLLATE=utf8mb4_uca1400_ai_ci
 
