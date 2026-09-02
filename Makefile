@@ -3,7 +3,7 @@
 
 # Bind mount host directories
 LOGIN := $(USER)
-DATA_DIR := /home/$(LOGIN)/data
+DATA_DIR := /home/$(LOGIN)/inception-data
 DB_DIR := $(DATA_DIR)/database
 WEB_DIR := $(DATA_DIR)/website
 export LOGIN DATA_DIR DB_DIR WEB_DIR
@@ -32,9 +32,9 @@ DB_COLLATE=utf8mb4_uca1400_ai_ci
 WORDPRESS_DOMAIN=vpoka.42.fr
 WORDPRESS_TITLE=Inception
 WORDPRESS_ADMIN_NAME=owner
-WORDPRESS_ADMIN_EMAIL=invalid@e.mail
-WORDPRESS_USER_NAME=carrot
-WORDPRESS_USER_EMAIL=2invalid@e.mail
+WORDPRESS_ADMIN_EMAIL=admin@invalid.email
+WORDPRESS_USER_NAME=user
+WORDPRESS_USER_EMAIL=user@invalid.email
 
 endef
 export INCEPTION_ENV_TEMPLATE
@@ -59,7 +59,7 @@ define log_step
 endef
 
 # --- Default rules ----------------------------------
-.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup setup-env setup-dirs setup-secrets distclean rm-data rm-env rm-secrets help
+.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup setup-env setup-dirs setup-secrets distclean rm-dirs rm-env rm-secrets help
 
 all: up
 
@@ -158,9 +158,9 @@ setup-secrets:
 		fi; \
 	done
 
-distclean: fclean rm-data rm-env rm-secrets
+distclean: fclean rm-dirs rm-env rm-secrets
 
-rm-data:
+rm-dirs:
 	$(log_target)
 	$(call log_step,Removing host data directory '$(DATA_DIR)')
 	@sudo rm -rf $(DATA_DIR)
@@ -178,27 +178,29 @@ rm-secrets:
 help:
 	@printf "$(C_BOLD)Available targets:$(C_RESET) %s\n"
 	@printf "$(C_BOLD)- Standard commands$(C_RESET) %s\n"
-	@echo "  - all              : (default) Run setup then build and start containers"
-	@echo "  - clean            : Stop containers and remove orphans"
-	@echo "  - fclean           : Remove containers, images, volumes and orphans (keeps host data and .env)"
-	@echo "  - re               : Full rebuild: fclean then all"
+	@echo "  - all           : (default) Run setup then build and start containers"
+	@echo "  - clean         : Stop containers and remove orphans"
+	@echo "  - fclean        : Remove containers, images, volumes and orphans (keeps host data and .env)"
+	@echo "  - re            : Full rebuild: fclean then all"
 	@printf "$(C_BOLD)- Docker compose commands$(C_RESET) %s\n"
-	@echo "  - up               : Build and start containers in detached mode"
-	@echo "  - down             : Stop and remove containers"
-	@echo "  - start            : Start existing containers"
-	@echo "  - stop             : Stop running containers"
-	@echo "  - pause            : Pause all services"
-	@echo "  - unpause          : Unpause all services"
-	@echo "  - build            : Build or rebuild services"
-	@echo "  - ps               : List running containers"
-	@echo "  - logs             : View output of containers"
+	@echo "  - up            : Build and start containers in detached mode"
+	@echo "  - down          : Stop and remove containers"
+	@echo "  - start         : Start existing containers"
+	@echo "  - stop          : Stop running containers"
+	@echo "  - pause         : Pause all services"
+	@echo "  - unpause       : Unpause all services"
+	@echo "  - build         : Build or rebuild services"
+	@echo "  - ps            : List running containers"
+	@echo "  - logs          : View output of containers"
 	@printf "$(C_BOLD)- Extra commands$(C_RESET) %s\n"
-	@echo "  - setup            : Run all setup steps below"
-	@echo "  - setup-env        : Generate srcs/.env from template (skips if exists)"
-	@echo "  - setup-dirs       : Create host data directories"
-	@echo "  - setup-secrets    : Generate missing secret placeholder files"
-	@echo "  - distclean        : fclean + remove host data and config (!all persistent data lost!)"
-	@echo "  - rm-data   : Remove host data directory"
-	@echo "  - rm-env    : Remove srcs/.env"
-	@echo "  - rm-secrets: Remove secret files"
-	@echo "  - help             : Display this help message"
+	@echo "  - setup         : Run all setup steps below"
+	@echo "  - setup-env     : Generate srcs/.env from template (skips if exists)"
+	@echo "  - setup-dirs    : Create host data directories"
+	@echo "  - setup-secrets : Generate missing secret placeholder files"
+	@echo "  -----"
+	@echo "  - distclean     : fclean + remove host data and config (!all persistent data lost!)"
+	@echo "  - rm-dirs       : Remove host data directory"
+	@echo "  - rm-env        : Remove srcs/.env"
+	@echo "  - rm-secrets    : Remove secret files"
+	@echo "  -----"
+	@echo "  - help          : Display this help message"

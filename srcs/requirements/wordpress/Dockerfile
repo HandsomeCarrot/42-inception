@@ -2,8 +2,10 @@ FROM alpine:3.23
 
 # install a verified wp-cli package
 RUN	set -eux; \
-	apk --cache=no add --virtual .build \
+	apk --cache=no add \
 		curl \
+	; \
+	apk --cache=no add --virtual .build \
 		gpg \
 		gpg-agent \
 	; \
@@ -49,9 +51,11 @@ COPY --chmod=+x ./config/entry.sh /usr/bin/entry
 COPY ./config/php.ini /etc/php85/conf.d/99_inception.ini
 COPY ./config/php-fpm.conf /etc/php85/php-fpm.d/www.conf
 
-ENTRYPOINT ["entry"]
+# HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
+# 	CMD curl -f "https://localhost/"
 
-CMD ["php-fpm85", "-F"]
+ENTRYPOINT ["entry"]
+CMD ["php-fpm", "-F"]
 
 # exposed to the compose network
 EXPOSE 9000

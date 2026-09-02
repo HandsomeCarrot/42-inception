@@ -1,19 +1,12 @@
 name: Inception
 # ==============================================================================
 services:
-  # nginx:
-  #   build: requirements/nginx/.
-  #   ports:
-  #     - 80:80
-  #   environment:
-  #     - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
-# -----
   mariadb:
     build:
-      context: ./requirements/mariadb
+      context: ./requirements/mariadb/.
     restart: always
     volumes:
-      - database:/home/data:rw
+      - database:/home/database:rw
     environment:
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:?}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:?}
@@ -28,14 +21,14 @@ services:
       - backend
 # -----
   wordpress:
-    build: ./requirements/wordpress
+    build: ./requirements/wordpress/.
     depends_on:
       mariadb:
         condition: service_healthy
         # restart: true
     restart: always
     volumes:
-      - website:/home/data:rw
+      - website:/home/website:rw
     environment:
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:?}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:?}
@@ -58,6 +51,22 @@ services:
     networks:
       - backend
       - frontend
+# -----
+  nginx:
+    build:
+      context: requirements/nginx/.
+    # depends_on:
+    #   wordpress:
+    #     condition: service_healthy
+    restart: always
+    volumes:
+      - website:/home/website:ro
+    environment:
+      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
+    networks:
+      - frontend
+    ports:
+      - 443:443
 # ==============================================================================
 volumes:
   database:
@@ -65,14 +74,14 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${DB_DIR:?}
+      device: ${DB_DIR:-/home/viktor/inception-data/database}
 # -----
   website:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${WEB_DIR:?}
+      device: ${WEB_DIR:-/home/viktor/inception-data/website}
 # ==============================================================================
 secrets:
 # -----

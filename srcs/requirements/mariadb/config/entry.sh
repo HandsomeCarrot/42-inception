@@ -33,7 +33,7 @@ envsubst '$DB_CHARSET $DB_COLLATE $MARIADB_USER_PASSWORD' < /etc/my.cnf > /tmp/m
 cat /tmp/my.cnf > /etc/my.cnf
 
 log "checking if base databases are created"
-if [ ! -d "/home/data/mysql" ]; then
+if [ ! -d "/home/database/mysql" ]; then
 	log "  -> error: creating..."
 	mariadb-install-db --skip-test-db
 	log "  -> done!"
@@ -42,7 +42,7 @@ else
 fi
 
 log "checking if wordpress database exists"
-if [ ! -d "/home/data/${WORDPRESS_DB_NAME}" ]; then
+if [ ! -d "/home/database/${WORDPRESS_DB_NAME}" ]; then
 	log "  -> error: creating..."
 
 	log "    -> replacing environment variables in setup.sql"

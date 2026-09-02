@@ -28,15 +28,11 @@ RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_exp
 	echo "@nginx https://nginx.org/packages/alpine/v3.23/main" >> /etc/apk/repositories; \
 	apk add --no-cache nginx@nginx
 
-# copy over the nginx config file
+# copy over the config files
 COPY config/nginx.conf /etc/nginx/nginx.conf
+COPY --chmod=+x config/entry.sh /usr/bin/entry
 
-# TODO: delete
-# echo 127.0.0.1	vpoka.42.fr www.vpoka.42.fr >> /etc/hosts
-# RUN	apk update \
-# 	&& apk add curl
-
-# TODO: change to 443
-EXPOSE 80
-
+ENTRYPOINT [ "entry" ]
 CMD [ "nginx", "-g", "daemon off;" ]
+
+EXPOSE 443

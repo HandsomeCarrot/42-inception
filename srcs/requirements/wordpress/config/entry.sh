@@ -92,10 +92,10 @@ else
 	log "  -> exists"
 fi
 
-log "Checking ownership of /home/data"
-if [ "$(stat -c '%U:%G' /home/data)" != "wordpress-data:wordpress-data" ]; then
+log "Checking ownership of /home/website"
+if [ "$(stat -c '%U:%G' /home/website)" != "wordpress-data:wordpress-data" ]; then
 	log "  -> wrong ownership, fixing"
-	chown -R wordpress-data:wordpress-data /home/data
+	chown -R wordpress-data:wordpress-data /home/website
 	log "  -> ownership corrected"
 else
 	log "  -> correct"
