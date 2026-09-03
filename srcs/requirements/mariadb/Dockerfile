@@ -8,7 +8,6 @@ RUN set -eux; \
 		mariadb-client=~11.4 \
 		gettext-envsubst \
 	; \
-# creates a directory that is required by mariadb, so it can create a socket?
 	mkdir -p /run/mysqld; \
 	chown -R mysql:mysql /run/mysqld;
 

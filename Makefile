@@ -1,12 +1,20 @@
 # --- Variables ---------------------------------------------------------
 .DEFAULT_GOAL := all
 
+# Alias for docker compose command that specifies projects docker-compose file
+COMPOSE_FILE := srcs/docker-compose.yml
+COMPOSE := docker compose -f $(COMPOSE_FILE)
+
+# --- Inception environment variables ---------------------------------------------------------
+
 # Bind mount host directories
-LOGIN := $(USER)
-DATA_DIR := /home/$(LOGIN)/inception-data
+DATA_DIR := /home/$(USER)/inception-data
 DB_DIR := $(DATA_DIR)/database
 WEB_DIR := $(DATA_DIR)/website
-export LOGIN DATA_DIR DB_DIR WEB_DIR
+
+export DATA_DIR DB_DIR WEB_DIR
+
+# --- Template files ---------------------------------------------------------
 
 # Secret files
 SECRETS_DIR := srcs/secrets
@@ -15,20 +23,22 @@ SECRETS :=	mariadb_root_password \
 			wordpress_admin_password \
 			wordpress_user_password
 
-# Alias for docker compose command that specifies projects docker-compose file
-COMPOSE_FILE := srcs/docker-compose.yml
-COMPOSE := docker compose -f $(COMPOSE_FILE)
-
 define INCEPTION_ENV_TEMPLATE
 # These are all the variables that are used throughout the services.
-# Passwords are stored in docker secrets (see $(SECRETS_DIR)), so this file only holds non-sensitive configuration.
+# Passwords are stored in docker secrets (see srcs/secrets), so this file only holds non-sensitive configuration.
 
+## General stuff
+DATABASE_VOLUME_PATH=/home/$(USER)/inception-data/database
+WEBSITE_VOLUME_PATH=/home/$(USER)/inception-data/website
+
+## Database related
 WORDPRESS_DB_NAME=wordpress
 WORDPRESS_DB_USER=wordpress
 WORDPRESS_DB_TABLE_PREFIX=random_
 DB_CHARSET=utf8mb4
 DB_COLLATE=utf8mb4_uca1400_ai_ci
 
+## Wordpress related
 WORDPRESS_DOMAIN=vpoka.42.fr
 WORDPRESS_TITLE=Inception
 WORDPRESS_ADMIN_NAME=owner
@@ -37,6 +47,7 @@ WORDPRESS_USER_NAME=user
 WORDPRESS_USER_EMAIL=user@invalid.email
 
 endef
+
 export INCEPTION_ENV_TEMPLATE
 
 # --- Logging helpers ---------------------------------------------------------
@@ -78,6 +89,11 @@ re: fclean all
 # --- Docker compose rules ----------------------------------
 
 up:
+	$(log_target)
+	$(call log_step,Building and starting containers in detached mode)
+	@$(COMPOSE) up --build
+
+detached:
 	$(log_target)
 	$(call log_step,Building and starting containers in detached mode)
 	@$(COMPOSE) up --build -d
@@ -135,7 +151,7 @@ setup-env:
 	$(log_target)
 	$(call log_step,Checking 'srcs/.env')
 	@if [ ! -f srcs/.env ]; then \
-		echo "$$INCEPTION_ENV_TEMPLATE" > srcs/.env; \
+		echo -n "$$INCEPTION_ENV_TEMPLATE" > srcs/.env; \
 		printf "$(C_CYAN)      ->$(C_RESET) wrote 'srcs/.env' from template\n"; \
 	else \
 		printf "$(C_CYAN)      ->$(C_RESET) 'srcs/.env' already exists, skipping\n"; \

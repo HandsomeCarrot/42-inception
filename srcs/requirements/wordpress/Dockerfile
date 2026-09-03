@@ -43,16 +43,15 @@ RUN	set -eux; \
 RUN	set -eux; \
 	ln -s /usr/bin/php85 /usr/bin/php; \
 	ln -s /usr/sbin/php-fpm85 /usr/sbin/php-fpm; \
-	addgroup -g 101 -S wordpress-data; \
-	adduser -u 101 -G wordpress-data -H -D -S wordpress-data;
+	adduser -u 1000 -D -S wordpress;
 
 COPY ./config/wp-cli.yml ./wp-cli.yml
 COPY --chmod=+x ./config/entry.sh /usr/bin/entry
 COPY ./config/php.ini /etc/php85/conf.d/99_inception.ini
 COPY ./config/php-fpm.conf /etc/php85/php-fpm.d/www.conf
 
-# HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
-# 	CMD curl -f "https://localhost/"
+HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
+	CMD php-fpm -t && test -f /home/website/wp-config.php && exit 0 || exit 1
 
 ENTRYPOINT ["entry"]
 CMD ["php-fpm", "-F"]

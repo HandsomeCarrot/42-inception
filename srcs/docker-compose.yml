@@ -55,9 +55,9 @@ services:
   nginx:
     build:
       context: requirements/nginx/.
-    # depends_on:
-    #   wordpress:
-    #     condition: service_healthy
+    depends_on:
+      wordpress:
+        condition: service_healthy
     restart: always
     volumes:
       - website:/home/website:ro
@@ -74,14 +74,14 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${DB_DIR:-/home/viktor/inception-data/database}
+      device: /home/viktor/inception-data/database
 # -----
   website:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${WEB_DIR:-/home/viktor/inception-data/website}
+      device: /home/viktor/inception-data/website
 # ==============================================================================
 secrets:
 # -----

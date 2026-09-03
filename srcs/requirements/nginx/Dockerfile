@@ -9,8 +9,12 @@ RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_exp
 	set -eux; \
 	\
 	# TODO: docs
-	apk add --no-cache openssl ca-certificates curl; \
-	\
+	apk add --no-cache \
+		openssl \
+		ca-certificates \
+		curl \
+		gettext-envsubst \
+	; \
 	# Download the official nginx signing key from nginx.org.
 	curl -fsS -o /tmp/nginx_signing.rsa.pub https://nginx.org/keys/nginx_signing.rsa.pub; \
 	\
@@ -26,10 +30,12 @@ RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_exp
 	\
 	# Register the nginx stable repository and install nginx.
 	echo "@nginx https://nginx.org/packages/alpine/v3.23/main" >> /etc/apk/repositories; \
-	apk add --no-cache nginx@nginx
+	apk add --no-cache nginx@nginx; \
+	mkdir -p /etc/nginx/ssl/; \
+	touch /etc/nginx/ssl/inception.key;
 
 # copy over the config files
-COPY config/nginx.conf /etc/nginx/nginx.conf
+COPY config/nginx.conf /etc/nginx/raw_nginx.conf
 COPY --chmod=+x config/entry.sh /usr/bin/entry
 
 ENTRYPOINT [ "entry" ]

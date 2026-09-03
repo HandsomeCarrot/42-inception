@@ -9,11 +9,9 @@ set -eu
 
 log "Starting NGINX entry script"
 
-# In a environment this should not be self signed.
 log "Checking if a site certificate exists"
-if [ ! -f /etc/nginx/ssl/site.crt ]; then
+if [ ! -f /etc/nginx/ssl/inception.crt ]; then
 	log "  -> missing, creating a new self-signed certificate"
-# could encrypt with ECDSA, but that is probably overkill for project
 	openssl req \
 		-x509 \
 		-nodes \
@@ -22,14 +20,24 @@ if [ ! -f /etc/nginx/ssl/site.crt ]; then
 		-keyout /etc/nginx/ssl/inception.key \
 		-out /etc/nginx/ssl/inception.crt \
 		-subj "/CN=$WORDPRESS_DOMAIN" \
-		-addext "subjectAltName=DNS:$WORDPRESS_DOMAIN,DNS:www.$WORDPRESS_DOMAIN"
+		-addext "subjectAltName=DNS:$WORDPRESS_DOMAIN,DNS:www.$WORDPRESS_DOMAIN" \
+	> /dev/null 2>&1
 	log "  -> certificate created successfully"
 else
 	log "  -> present"
 fi
 
-log "replacing environment variables in nginx.conf"
-envsubst '$WORDPRESS_DOMAIN' < /etc/nginx/nginx.conf > /tmp/my.cnf
-cat /tmp/my.cnf > /etc/nginx/nginx.conf
+log "Checking if NGINX configuration file needs environment variable substitution"
+if [ -f /etc/nginx/raw_nginx.conf ]; then
+	log "  -> replacing environment variables"
+	envsubst '$WORDPRESS_DOMAIN' < /etc/nginx/raw_nginx.conf > /etc/nginx/nginx.conf
+	log "  -> deleting unsubstituted file"
+	rm /etc/nginx/raw_nginx.conf
+	log "  -> done!"
+else
+	log "  -> already substituted"
+fi
+
+log "Ended NGINX entry script"
 
 exec "$@"
