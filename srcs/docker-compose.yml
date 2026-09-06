@@ -8,10 +8,11 @@ services:
     volumes:
       - database:/home/database:rw
     environment:
-      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:?}
-      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:?}
-      - DB_CHARSET=${DB_CHARSET:?}
-      - DB_COLLATE=${DB_COLLATE:?}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
+      - DB_CHARSET=${DB_CHARSET:-utf8mb4}
+      - DB_COLLATE=${DB_COLLATE:-utf8mb4_uca1400_ai_ci}
+      - MARIADB_PORT=${MARIADB_PORT:-3306}
       - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/mariadb_root_password
       - MARIADB_USER_PASSWORD_FILE=/run/secrets/mariadb_user_password
     secrets:
@@ -30,17 +31,20 @@ services:
     volumes:
       - website:/home/website:rw
     environment:
-      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:?}
-      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:?}
-      - WORDPRESS_DB_TABLE_PREFIX=${WORDPRESS_DB_TABLE_PREFIX:?}
-      - DB_CHARSET=${DB_CHARSET:?}
-      - DB_COLLATE=${DB_COLLATE:?}
-      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
-      - WORDPRESS_TITLE=${WORDPRESS_TITLE:?}
-      - WORDPRESS_ADMIN_NAME=${WORDPRESS_ADMIN_NAME:?}
-      - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL}
-      - WORDPRESS_USER_NAME=${WORDPRESS_USER_NAME:?}
-      - WORDPRESS_USER_EMAIL=${WORDPRESS_USER_EMAIL:?}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
+      - WORDPRESS_DB_TABLE_PREFIX=${WORDPRESS_DB_TABLE_PREFIX:-wordpress_}
+      - DB_CHARSET=${DB_CHARSET:-utf8mb4}
+      - DB_COLLATE=${DB_COLLATE:-utf8mb4_uca1400_ai_ci}
+      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:-vpoka.42.fr}
+      - WORDPRESS_TITLE=${WORDPRESS_TITLE:-Inception}
+      - WORDPRESS_ADMIN_NAME=${WORDPRESS_ADMIN_NAME:-owner}
+      - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL:-admin@invalid.email}
+      - WORDPRESS_USER_NAME=${WORDPRESS_USER_NAME:-user}
+      - WORDPRESS_USER_EMAIL=${WORDPRESS_USER_EMAIL:-user@invalid.email}
+      - NGINX_PORT=${NGINX_PORT:-443}
+      - WORDPRESS_FPM_PORT=${WORDPRESS_FPM_PORT:-9000}
+      - MARIADB_PORT=${MARIADB_PORT:-3306}
       - WORDPRESS_ADMIN_PASSWORD_FILE=/run/secrets/wordpress_admin_password
       - WORDPRESS_USER_PASSWORD_FILE=/run/secrets/wordpress_user_password
       - MARIADB_USER_PASSWORD_FILE=/run/secrets/mariadb_user_password
@@ -62,11 +66,13 @@ services:
     volumes:
       - website:/home/website:ro
     environment:
-      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
+      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:-vpoka.42.fr}
+      - NGINX_PORT=${NGINX_PORT:-443}
+      - WORDPRESS_FPM_PORT=${WORDPRESS_FPM_PORT:-9000}
     networks:
       - frontend
     ports:
-      - 443:443
+      - ${NGINX_PORT:-443}:${NGINX_PORT:-443}
 # ==============================================================================
 volumes:
   database:

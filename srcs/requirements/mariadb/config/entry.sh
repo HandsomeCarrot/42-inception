@@ -29,8 +29,7 @@ export MARIADB_ROOT_PASSWORD MARIADB_USER_PASSWORD
 log "  -> success!"
 
 log "replacing environment variables in my.cnf"
-envsubst '$DB_CHARSET $DB_COLLATE $MARIADB_USER_PASSWORD' < /etc/my.cnf > /tmp/my.cnf
-cat /tmp/my.cnf > /etc/my.cnf
+envsubst '$DB_CHARSET $DB_COLLATE $MARIADB_USER_PASSWORD $MARIADB_PORT' < /home/my.cnf > /etc/my.cnf
 
 log "checking if base databases are created"
 if [ ! -d "/home/database/mysql" ]; then

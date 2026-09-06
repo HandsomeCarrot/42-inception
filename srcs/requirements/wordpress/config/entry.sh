@@ -55,7 +55,7 @@ if ! wp config path >/dev/null 2>&1; then
         --dbname="$WORDPRESS_DB_NAME" \
         --dbuser="$WORDPRESS_DB_USER" \
         --dbpass="$DATABASE_PASSWORD" \
-        --dbhost=mariadb \
+        --dbhost=mariadb:${MARIADB_PORT} \
         --dbprefix="$WORDPRESS_DB_TABLE_PREFIX" \
         --dbcharset="$DB_CHARSET" \
         --dbcollate="$DB_COLLATE"
@@ -68,7 +68,7 @@ log "Checking if WordPress is installed in the database"
 if ! wp core is-installed >/dev/null 2>&1; then
 	log "  -> not installed, running wp core install"
 	wp core install \
-		--url="$WORDPRESS_DOMAIN" \
+		--url="$WORDPRESS_DOMAIN:$NGINX_PORT" \
 		--title="$WORDPRESS_TITLE" \
 		--admin_user="$WORDPRESS_ADMIN_NAME" \
 		--admin_password="$WORDPRESS_ADMIN_PASSWORD" \

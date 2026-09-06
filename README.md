@@ -15,5 +15,14 @@
 
 ## Instructions
 
+### Download
+
+### Install
+
+### Setup
+
+### Use
+
 ## Resources
 
+### AI usage

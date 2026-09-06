@@ -26,28 +26,33 @@ SECRETS :=	mariadb_root_password \
 define INCEPTION_ENV_TEMPLATE
 # These are all the variables that are used throughout the services.
 # Passwords are stored in docker secrets (see srcs/secrets), so this file only holds non-sensitive configuration.
+#
+# All of the variables are commented out and filled with their default value.
+# The defaults are declared in srcs/docker-compose.yml, which uses them whenever a
+# variable is unset or empty here, so nothing has to be filled out to run the project.
+# If you wish to change them, uncomment the values and change them with whatever you want them to be.
 
-## General stuff
-DATABASE_VOLUME_PATH=/home/$(USER)/inception-data/database
-WEBSITE_VOLUME_PATH=/home/$(USER)/inception-data/website
+## Ports
+# NGINX_PORT=443
+# WORDPRESS_FPM_PORT=9000
+# MARIADB_PORT=3306
 
 ## Database related
-WORDPRESS_DB_NAME=wordpress
-WORDPRESS_DB_USER=wordpress
-WORDPRESS_DB_TABLE_PREFIX=random_
-DB_CHARSET=utf8mb4
-DB_COLLATE=utf8mb4_uca1400_ai_ci
+# WORDPRESS_DB_NAME=wordpress
+# WORDPRESS_DB_USER=wordpress
+# WORDPRESS_DB_TABLE_PREFIX=wordpress_
+# DB_CHARSET=utf8mb4
+# DB_COLLATE=utf8mb4_uca1400_ai_ci
 
 ## Wordpress related
-WORDPRESS_DOMAIN=vpoka.42.fr
-WORDPRESS_TITLE=Inception
-WORDPRESS_ADMIN_NAME=owner
-WORDPRESS_ADMIN_EMAIL=admin@invalid.email
-WORDPRESS_USER_NAME=user
-WORDPRESS_USER_EMAIL=user@invalid.email
+# WORDPRESS_DOMAIN=vpoka.42.fr
+# WORDPRESS_TITLE=Inception
+# WORDPRESS_ADMIN_NAME=owner
+# WORDPRESS_ADMIN_EMAIL=admin@invalid.email
+# WORDPRESS_USER_NAME=user
+# WORDPRESS_USER_EMAIL=user@invalid.email
 
 endef
-
 export INCEPTION_ENV_TEMPLATE
 
 # --- Logging helpers ---------------------------------------------------------

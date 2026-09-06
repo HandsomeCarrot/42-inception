@@ -30,7 +30,7 @@ fi
 log "Checking if NGINX configuration file needs environment variable substitution"
 if [ -f /etc/nginx/raw_nginx.conf ]; then
 	log "  -> replacing environment variables"
-	envsubst '$WORDPRESS_DOMAIN' < /etc/nginx/raw_nginx.conf > /etc/nginx/nginx.conf
+	envsubst '$WORDPRESS_DOMAIN $NGINX_PORT $WORDPRESS_FPM_PORT' < /etc/nginx/raw_nginx.conf > /etc/nginx/nginx.conf
 	log "  -> deleting unsubstituted file"
 	rm /etc/nginx/raw_nginx.conf
 	log "  -> done!"
