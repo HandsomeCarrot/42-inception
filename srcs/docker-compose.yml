@@ -6,7 +6,7 @@ services:
       context: ./requirements/mariadb/.
     restart: always
     volumes:
-      - database:/home/database:rw
+      - data-drive:/home/data-drive:rw
     environment:
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
@@ -19,7 +19,7 @@ services:
       - mariadb_root_password
       - mariadb_user_password
     networks:
-      - backend
+      - data-net
 # -----
   wordpress:
     build: ./requirements/wordpress/.
@@ -29,7 +29,7 @@ services:
         # restart: true
     restart: always
     volumes:
-      - website:/home/website:rw
+      - web-drive:/home/web-drive:rw
     environment:
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
@@ -53,8 +53,8 @@ services:
       - wordpress_admin_password
       - wordpress_user_password
     networks:
-      - backend
-      - frontend
+      - data-net
+      - web-net
 # -----
   nginx:
     build:
@@ -64,25 +64,25 @@ services:
         condition: service_healthy
     restart: always
     volumes:
-      - website:/home/website:ro
+      - web-drive:/home/web-drive:ro
     environment:
       - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:-vpoka.42.fr}
       - NGINX_PORT=${NGINX_PORT:-443}
       - WORDPRESS_FPM_PORT=${WORDPRESS_FPM_PORT:-9000}
     networks:
-      - frontend
+      - web-net
     ports:
       - ${NGINX_PORT:-443}:${NGINX_PORT:-443}
 # ==============================================================================
 volumes:
-  database:
+  data-drive:
     driver: local
     driver_opts:
       type: none
       o: bind
       device: /home/viktor/inception-data/database
 # -----
-  website:
+  web-drive:
     driver: local
     driver_opts:
       type: none
@@ -106,9 +106,9 @@ secrets:
 # TODO: define an internal docker network
 networks:
 # -----
-  backend:
+  data-net:
     driver: bridge
 # -----
-  frontend:
+  web-net:
     driver: bridge
     # internal: true # if uncommented, installation of wordpress files from internet fails, as this setting does not allow ANY connection to the outside
