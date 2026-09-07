@@ -2,13 +2,13 @@
 
 log()
 {
-	printf "\x1b[33m[ENTRY-SCRIPT]\x1b[0m %s\n" "$*"
+	printf "\x1b[33m[ENTRY-SCRIPT]\x1b[0m $*\n"
 }
 
 validate_secret()
 {
 	if [ ! -s "$1" ]; then
-		log "error: secret '$1' is empty"
+		log "\x1b[31merror: secret '$1' is empty\x1b[0m"
 		exit 1
 	fi
 }
