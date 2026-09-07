@@ -72,7 +72,7 @@ endef
 STEP_PREFIX := \t$(C_CYAN)->$(C_RESET)
 
 # --- Default rules ----------------------------------
-.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs setup setup-env setup-dirs setup-secrets distclean rm-dirs rm-env rm-secrets help
+.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs exec run setup setup-env setup-dirs setup-secrets distclean rm-dirs rm-env rm-secrets help
 
 all: up
 
@@ -107,18 +107,18 @@ build:
 
 start:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Starting existing containers\n"
-	@$(COMPOSE) start
+	@printf "$(STEP_PREFIX) Starting $(if $(S),container '$(S)',all existing containers)\n"
+	@$(COMPOSE) start $(S)
 
 stop:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Stopping running containers\n"
-	@$(COMPOSE) stop
+	@printf "$(STEP_PREFIX) Stopping $(if $(S),container '$(S)',all running containers)\n"
+	@$(COMPOSE) stop $(S)
 
 restart:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Restarting containers\n"
-	@$(COMPOSE) restart
+	@printf "$(STEP_PREFIX) Restarting $(if $(S),container '$(S)',all containers)\n"
+	@$(COMPOSE) restart $(S)
 
 down:
 	$(log_target)
@@ -127,21 +127,37 @@ down:
 
 pause:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Pausing all servives\n"
-	@$(COMPOSE) pause
+	@printf "$(STEP_PREFIX) Pausing $(if $(S),service '$(S)',all services)\n"
+	@$(COMPOSE) pause $(S)
 
 unpause:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Resuming all services\n"
-	@$(COMPOSE) unpause
+	@printf "$(STEP_PREFIX) Resuming $(if $(S),service '$(S)',all services)\n"
+	@$(COMPOSE) unpause $(S)
 
 ps:
 	$(log_target)
-	@$(COMPOSE) ps -a
+	@$(COMPOSE) ps -a $(S)
 
 logs:
 	$(log_target)
-	@$(COMPOSE) logs
+	@$(COMPOSE) logs $(S)
+
+exec:
+	$(log_target)
+	@if [ -z "$(S)" ]; then \
+		printf "$(C_YELLOW)[ERROR] Usage: make exec S=<service> [C=\"command\"]$(C_RESET)\n"; \
+		exit 1; \
+	fi
+	@$(COMPOSE) exec $(S) $(if $(C),$(C),sh)
+
+run:
+	$(log_target)
+	@if [ -z "$(S)" ]; then \
+		printf "$(C_YELLOW)[ERROR] Usage: make run S=<service> [C=\"command\"]$(C_RESET)\n"; \
+		exit 1; \
+	fi
+	@$(COMPOSE) run --rm $(S) $(C)
 
 # --- Extra rules ----------------------------------
 
@@ -196,29 +212,38 @@ rm-secrets:
 help:
 	@printf "$(C_BOLD)Available targets:$(C_RESET) %s\n"
 	@printf "$(C_BOLD)- Standard commands$(C_RESET) %s\n"
-	@printf "  - all           : (default) Run setup then build and start containers"
-	@printf "  - clean         : Stop containers and remove orphans"
-	@printf "  - fclean        : Remove containers, images, volumes and orphans (keeps host data and .env)"
-	@printf "  - re            : Full rebuild: fclean then all"
+	@printf "  - all           : (default) Run setup then build and start containers\n"
+	@printf "  - clean         : Stop containers and remove orphans\n"
+	@printf "  - fclean        : Remove containers, images, volumes and orphans (keeps host data and .env)\n"
+	@printf "  - re            : Full rebuild: fclean then all\n"
 	@printf "$(C_BOLD)- Docker compose commands$(C_RESET) %s\n"
-	@printf "  - up            : Build and start containers in detached mode"
-	@printf "  - down          : Stop and remove containers"
-	@printf "  - start         : Start existing containers"
-	@printf "  - stop          : Stop running containers"
-	@printf "  - pause         : Pause all services"
-	@printf "  - unpause       : Unpause all services"
-	@printf "  - build         : Build or rebuild services"
-	@printf "  - ps            : List running containers"
-	@printf "  - logs          : View output of containers"
+	@printf "  - up            : Build and start containers in detached mode\n"
+	@printf "  - down          : Stop and remove containers\n"
+	@printf "  - start         : Start existing containers [S]\n"
+	@printf "  - stop          : Stop running containers [S]\n"
+	@printf "  - restart       : Restart containers [S]\n"
+	@printf "  - pause         : Pause all services [S]\n"
+	@printf "  - unpause       : Resume paused services [S]\n"
+	@printf "  - build         : Build or rebuild services\n"
+	@printf "  - ps            : List running containers [S]\n"
+	@printf "  - logs          : View output of containers [S]\n"
+	@printf "  - exec          : Run a command in a running service [S, C]\n"
+	@printf "  - run           : Run a one-off command in a new container [S, C]\n"
+	@printf "$(C_BOLD)- Optional variables$(C_RESET) %s\n"
+	@printf "  - S=<service>   : Limit the command to one service\n"
+	@printf "                      - Used by: exec, run, start, stop, restart, pause, unpause, ps, logs\n"
+	@printf "                      - Possible values: nginx, wordpress, mariadb\n"
+	@printf "  - C=\"<command>\" : Command to run (exec/run only).\n"
+	@printf "                      - Examples: C=\"ls -la\"  C=\"mysql -u root -p\"\n"
 	@printf "$(C_BOLD)- Extra commands$(C_RESET) %s\n"
-	@printf "  - setup         : Run all setup steps below"
-	@printf "  - setup-env     : Generate srcs/.env from template (skips if exists)"
-	@printf "  - setup-dirs    : Create host data directories"
-	@printf "  - setup-secrets : Generate missing secret placeholder files"
-	@printf "  -----"
-	@printf "  - distclean     : fclean + remove host data and config (!all persistent data lost!)"
-	@printf "  - rm-dirs       : Remove host data directory"
-	@printf "  - rm-env        : Remove srcs/.env"
-	@printf "  - rm-secrets    : Remove secret files"
-	@printf "  -----"
-	@printf "  - help          : Display this help message"
+	@printf "  - setup         : Run all setup steps below\n"
+	@printf "  - setup-env     : Generate srcs/.env from template (skips if exists)\n"
+	@printf "  - setup-dirs    : Create host data directories\n"
+	@printf "  - setup-secrets : Generate missing secret placeholder files\n"
+	@printf "  -----\n"
+	@printf "  - distclean     : fclean + remove host data and config (!all persistent data lost!)\n"
+	@printf "  - rm-dirs       : Remove host data directory\n"
+	@printf "  - rm-env        : Remove srcs/.env\n"
+	@printf "  - rm-secrets    : Remove secret files\n"
+	@printf "  -----\n"
+	@printf "  - help          : Display this help message\n"
