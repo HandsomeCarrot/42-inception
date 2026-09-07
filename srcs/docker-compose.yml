@@ -4,6 +4,9 @@ services:
   mariadb:
     build:
       context: ./requirements/mariadb/.
+      tags:
+        - inception-db:1.0
+        - inception-db:latest
     restart: always
     volumes:
       - data-drive:/home/data-drive:rw
@@ -32,7 +35,11 @@ services:
       - data-net
 # -----
   wordpress:
-    build: ./requirements/wordpress/.
+    build:
+      context: ./requirements/wordpress/.
+      tags:
+        - inception-wp:1.0
+        - inception-wp:latest
     depends_on:
       mariadb:
         condition: service_healthy
@@ -56,11 +63,11 @@ services:
       - WORDPRESS_DB_TABLE_PREFIX=${WORDPRESS_DB_TABLE_PREFIX:-wordpress_}
       - DB_CHARSET=${DB_CHARSET:-utf8mb4}
       - DB_COLLATE=${DB_COLLATE:-utf8mb4_uca1400_ai_ci}
-      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:-vpoka.42.fr}
+      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
       - WORDPRESS_TITLE=${WORDPRESS_TITLE:-Inception}
       - WORDPRESS_ADMIN_NAME=${WORDPRESS_ADMIN_NAME:-owner}
       - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL:-admin@invalid.email}
-      - WORDPRESS_USER_NAME=${WORDPRESS_USER_NAME:-user}
+      - WORDPRESS_USER_NAME=${WORDPRESS_USER_NAME:-author}
       - WORDPRESS_USER_EMAIL=${WORDPRESS_USER_EMAIL:-user@invalid.email}
       - NGINX_PORT=${NGINX_PORT:-443}
       - WORDPRESS_FPM_PORT=${WORDPRESS_FPM_PORT:-9000}
@@ -79,6 +86,9 @@ services:
   nginx:
     build:
       context: requirements/nginx/.
+      tags:
+        - inception-nginx:1.0
+        - inception-nginx:latest
     depends_on:
       wordpress:
         condition: service_healthy
@@ -86,7 +96,7 @@ services:
     volumes:
       - web-drive:/home/web-drive:ro
     environment:
-      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:-vpoka.42.fr}
+      - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
       - NGINX_PORT=${NGINX_PORT:-443}
       - WORDPRESS_FPM_PORT=${WORDPRESS_FPM_PORT:-9000}
     networks:
@@ -110,7 +120,6 @@ volumes:
       device: /home/viktor/inception-data/website
 # ==============================================================================
 secrets:
-# -----
   mariadb_root_password:
     file: ./secrets/mariadb_root_password.txt
 # -----
@@ -123,9 +132,7 @@ secrets:
   wordpress_user_password:
     file: ./secrets/wordpress_user_password.txt
 # ==============================================================================
-# TODO: define an internal docker network
 networks:
-# -----
   data-net:
     driver: bridge
 # -----

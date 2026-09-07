@@ -49,7 +49,7 @@ define INCEPTION_ENV_TEMPLATE
 # WORDPRESS_TITLE=Inception
 # WORDPRESS_ADMIN_NAME=owner
 # WORDPRESS_ADMIN_EMAIL=admin@invalid.email
-# WORDPRESS_USER_NAME=user
+# WORDPRESS_USER_NAME=author
 # WORDPRESS_USER_EMAIL=user@invalid.email
 
 endef
