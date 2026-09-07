@@ -95,6 +95,16 @@ services:
     restart: always
     volumes:
       - web-drive:/home/web-drive:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsk --max-time 4 -o /dev/null https://localhost:$$NGINX_PORT/readme.html || exit 1",
+        ]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
     environment:
       - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
       - NGINX_PORT=${NGINX_PORT:-443}
