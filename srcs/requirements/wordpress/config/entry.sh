@@ -41,8 +41,8 @@ log "  -> ok"
 
 log "Checking if WordPress core files are present"
 if ! wp core version >/dev/null 2>&1; then
-	log "  -> missing, downloading WordPress core"
-	wp core download --version=6.9
+	log "  -> missing, downloading WordPress core($WORDPRESS_VERSION)"
+	wp core download --version="$WORDPRESS_VERSION"
 	log "  -> download complete"
 else
 	log "  -> present"

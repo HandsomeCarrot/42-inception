@@ -58,6 +58,7 @@ services:
       timeout: 5s
       retries: 3
     environment:
+      - WORDPRESS_VERSION=${WORDPRESS_VERSION:-7.0.4}
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
       - WORDPRESS_DB_TABLE_PREFIX=${WORDPRESS_DB_TABLE_PREFIX:-wordpress_}

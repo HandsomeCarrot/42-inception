@@ -45,6 +45,7 @@ define INCEPTION_ENV_TEMPLATE
 # DB_COLLATE=utf8mb4_uca1400_ai_ci
 
 ## Wordpress related
+# WORDPRESS_VERSION=7.0.4
 # WORDPRESS_DOMAIN=vpoka.42.fr
 # WORDPRESS_TITLE=Inception
 # WORDPRESS_ADMIN_NAME=owner
@@ -149,7 +150,7 @@ exec:
 		printf "$(C_YELLOW)[ERROR] Usage: make exec S=<service> [C=\"command\"]$(C_RESET)\n"; \
 		exit 1; \
 	fi
-	@$(COMPOSE) exec $(S) $(if $(C),$(C),sh)
+	@$(COMPOSE) exec $(S) $(if $(C),$(C),ash)
 
 run:
 	$(log_target)
