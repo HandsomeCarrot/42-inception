@@ -64,11 +64,16 @@ else
 	log "  -> present"
 fi
 
+site_url="https://$WORDPRESS_DOMAIN"
+if [ "$NGINX_PORT" != "443" ]; then
+	site_url="$site_url:$NGINX_PORT"
+fi
+
 log "Checking if WordPress is installed in the database"
 if ! wp core is-installed >/dev/null 2>&1; then
 	log "  -> not installed, running wp core install"
 	wp core install \
-		--url="$WORDPRESS_DOMAIN:$NGINX_PORT" \
+		--url="$site_url" \
 		--title="$WORDPRESS_TITLE" \
 		--admin_user="$WORDPRESS_ADMIN_NAME" \
 		--admin_password="$WORDPRESS_ADMIN_PASSWORD" \
