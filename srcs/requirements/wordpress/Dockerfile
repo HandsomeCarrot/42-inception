@@ -23,6 +23,7 @@ RUN	set -eux; \
 #   - php extensions
 RUN	set -eux; \
 	apk --cache=no add \
+		fcgi \
 		php85 \
 		php85-fpm \
 		php85-phar \
@@ -50,9 +51,7 @@ COPY --chmod=+x ./config/entry.sh /usr/bin/entry
 COPY ./config/php.ini /etc/php85/conf.d/99_inception.ini
 COPY ./config/php-fpm.conf /etc/php85/php-fpm.d/www.conf
 
-HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
-	CMD php-fpm -t && test -f /home/web-drive/wp-config.php && exit 0 || exit 1
-
+# healthcheck is defined in docker-compose.yml
 ENTRYPOINT ["entry"]
 CMD ["php-fpm", "-F"]
 

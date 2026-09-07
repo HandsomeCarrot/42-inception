@@ -7,6 +7,16 @@ services:
     restart: always
     volumes:
       - data-drive:/home/data-drive:rw
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mariadb -h 127.0.0.1 -u\"$$WORDPRESS_DB_USER\" -e \"SELECT 1\" \"$$WORDPRESS_DB_NAME\" >/dev/null 2>&1",
+        ]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
     environment:
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
@@ -30,6 +40,16 @@ services:
     restart: always
     volumes:
       - web-drive:/home/web-drive:rw
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect \"localhost:$$WORDPRESS_FPM_PORT\" | grep -q pong",
+        ]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
     environment:
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
