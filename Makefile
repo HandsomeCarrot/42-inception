@@ -51,7 +51,7 @@ define INCEPTION_ENV_TEMPLATE
 # WORDPRESS_ADMIN_NAME=owner
 # WORDPRESS_ADMIN_EMAIL=admin@invalid.email
 # WORDPRESS_USER_NAME=author
-# WORDPRESS_USER_EMAIL=user@invalid.email
+# WORDPRESS_USER_EMAIL=author@invalid.email
 
 endef
 export INCEPTION_ENV_TEMPLATE

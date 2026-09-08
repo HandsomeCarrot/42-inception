@@ -36,6 +36,7 @@ RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_exp
 
 # copy over the config files
 COPY config/nginx.conf /etc/nginx/raw_nginx.conf
+COPY config/nginx_security_headers.conf /etc/nginx/security_headers.conf
 COPY --chmod=+x config/entry.sh /usr/bin/entry
 
 ENTRYPOINT [ "entry" ]
