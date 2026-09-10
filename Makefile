@@ -32,6 +32,10 @@ define INCEPTION_ENV_TEMPLATE
 # variable is unset or empty here, so nothing has to be filled out to run the project.
 # If you wish to change them, uncomment the values and change them with whatever you want them to be.
 
+## Volumes (host paths)
+# DATA_DRIVE_PATH=/home/vpoka/data/database
+# WEB_DRIVE_PATH=/home/vpoka/data/website
+
 ## Ports
 # NGINX_PORT=443
 # WORDPRESS_FPM_PORT=9000
@@ -73,21 +77,18 @@ endef
 STEP_PREFIX := \t$(C_CYAN)->$(C_RESET)
 
 # --- Default rules ----------------------------------
-.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs exec run setup setup-env setup-dirs setup-secrets distclean rm-dirs rm-env rm-secrets help
+.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs exec run setup setup-env setup-dirs setup-secrets rm-dirs rm-env rm-secrets help
 
 all: up
 
-clean: down
+clean:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Removing stopped containers\n"
-	@$(COMPOSE) rm -f
+	@printf "$(STEP_PREFIX) Stopping and removing containers, networks, volumes and images\n"
+	@$(COMPOSE) down --volumes --rmi all --remove-orphans
 
-fclean: clean
-	$(log_target)
-	@printf "$(STEP_PREFIX) Removing: containers + volumes + images\n"
-	@$(COMPOSE) down --volumes --rmi all #>/dev/null
+fclean: clean rm-env rm-secrets rm-dirs
 
-re: fclean all
+re: clean all
 
 # --- Docker compose rules ----------------------------------
 
@@ -193,8 +194,6 @@ setup-secrets:
 		fi; \
 	done
 
-distclean: fclean rm-dirs rm-env rm-secrets
-
 rm-dirs:
 	$(log_target)
 	@printf "$(STEP_PREFIX) Removing host data directory '$(DATA_DIR)'\n"
@@ -214,9 +213,9 @@ help:
 	@printf "$(C_BOLD)Available targets:$(C_RESET) %s\n"
 	@printf "$(C_BOLD)- Standard commands$(C_RESET) %s\n"
 	@printf "  - all           : (default) Run setup then build and start containers\n"
-	@printf "  - clean         : Stop containers and remove orphans\n"
-	@printf "  - fclean        : Remove containers, images, volumes and orphans (keeps host data and .env)\n"
-	@printf "  - re            : Full rebuild: fclean then all\n"
+	@printf "  - clean         : Remove all docker resources: containers, networks, volumes, images\n"
+	@printf "  - fclean        : clean + remove .env, secrets and host data (!all persistent data lost!)\n"
+	@printf "  - re            : Full rebuild: clean then all (keeps config and data)\n"
 	@printf "$(C_BOLD)- Docker compose commands$(C_RESET) %s\n"
 	@printf "  - up            : Build and start containers in detached mode\n"
 	@printf "  - down          : Stop and remove containers\n"
@@ -242,7 +241,6 @@ help:
 	@printf "  - setup-dirs    : Create host data directories\n"
 	@printf "  - setup-secrets : Generate missing secret placeholder files\n"
 	@printf "  -----\n"
-	@printf "  - distclean     : fclean + remove host data and config (!all persistent data lost!)\n"
 	@printf "  - rm-dirs       : Remove host data directory\n"
 	@printf "  - rm-env        : Remove srcs/.env\n"
 	@printf "  - rm-secrets    : Remove secret files\n"
