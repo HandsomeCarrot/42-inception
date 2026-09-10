@@ -121,14 +121,14 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/viktor/inception-data/database
+      device: ${DATA_DRIVE_PATH:-/home/vpoka/data/database}
 # -----
   web-drive:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/viktor/inception-data/website
+      device: ${WEB_DRIVE_PATH:-/home/vpoka/data/website}
 # ==============================================================================
 secrets:
   mariadb_root_password:
