@@ -1,24 +1,21 @@
-# --- Variables ---------------------------------------------------------
+# --- Variables --------------------------------------------------------
 .DEFAULT_GOAL := all
 
-# Alias for docker compose command that specifies projects docker-compose file
 COMPOSE_FILE := srcs/docker-compose.yml
 COMPOSE := docker compose -f $(COMPOSE_FILE)
 
-# --- Inception environment variables ---------------------------------------------------------
+# --- Inception environment variables ----------------------------------
 
 -include srcs/.env
 
-# Bind mount host directories; defaults match the volume paths in srcs/docker-compose.yml
 DATA_ROOT_PATH ?= /home/vpoka/data
 DATA_DRIVE_DIR ?= database
 WEB_DRIVE_DIR ?= website
 
 export DATA_ROOT_PATH DATA_DRIVE_DIR WEB_DRIVE_DIR
 
-# --- Template files ---------------------------------------------------------
+# --- Template files ---------------------------------------------------
 
-# Secret files
 SECRETS_DIR := srcs/secrets
 SECRETS :=	mariadb_root_password \
 			mariadb_user_password \
@@ -56,23 +53,19 @@ define INCEPTION_ENV_TEMPLATE
 endef
 export INCEPTION_ENV_TEMPLATE
 
-# --- Logging helpers ---------------------------------------------------------
-# Colors
+# --- Logging helpers --------------------------------------------------
 C_RESET  := \x1b[0m
 C_CYAN   := \x1b[36m
 C_YELLOW := \x1b[33m
 C_BOLD   := \x1b[1m
 
-# Banner announcing the target, e.g.  ==> up
-# (uses $@, so no argument needed -> call with plain $(log_target))
 define log_target
 	@printf "$(C_BOLD)$(C_CYAN)==>$(C_RESET) $(C_BOLD)%s$(C_RESET)\n" "$@"
 endef
 
-# Prefix for sub-step messages within a target, e.g.      -> Building images
 STEP_PREFIX := \t$(C_CYAN)->$(C_RESET)
 
-# --- Default rules ----------------------------------
+# --- Default rules ----------------------------------------------------
 .PHONY: all clean fclean re up attached down start stop restart build pause unpause ps logs exec run setup setup-env setup-dirs setup-secrets rm-dirs rm-env rm-secrets help
 
 all:
@@ -89,7 +82,7 @@ fclean: clean rm-env rm-secrets rm-dirs
 
 re: clean all
 
-# --- Docker compose rules ----------------------------------
+# --- Docker compose rules ---------------------------------------------
 
 up:
 	$(log_target)
@@ -160,7 +153,7 @@ run:
 	fi
 	@$(COMPOSE) run --rm $(S) $(C)
 
-# --- Extra rules ----------------------------------
+# --- Extra rules ------------------------------------------------------
 
 setup: setup-env setup-dirs setup-secrets
 	$(log_target)

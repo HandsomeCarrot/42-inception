@@ -1,6 +1,5 @@
 FROM alpine:3.23
 
-# install a verified wp-cli package
 RUN	set -eux; \
 	apk --cache=no add \
 		curl \
@@ -18,9 +17,6 @@ RUN	set -eux; \
 	rm wp-cli.phar.asc; \
 	apk del .build;
 
-# - install:
-#   - required packages
-#   - php extensions
 RUN	set -eux; \
 	apk --cache=no add \
 		fcgi \
@@ -40,7 +36,6 @@ RUN	set -eux; \
 		php85-iconv \
 	;
 
-# - rename php executables to standard names (remove 85 from them)
 RUN	set -eux; \
 	ln -s /usr/bin/php85 /usr/bin/php; \
 	ln -s /usr/sbin/php-fpm85 /usr/sbin/php-fpm; \
@@ -51,9 +46,5 @@ COPY --chmod=+x ./config/entry.sh /usr/bin/entry
 COPY ./config/php.ini /etc/php85/conf.d/99_inception.ini
 COPY ./config/php-fpm.conf /etc/php85/php-fpm.d/www.conf
 
-# healthcheck is defined in docker-compose.yml
 ENTRYPOINT ["entry"]
 CMD ["php-fpm", "-F"]
-
-# exposed to the compose network
-EXPOSE 9000

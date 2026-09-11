@@ -1,3 +1,2 @@
-# Private Information
 srcs/secrets/*
 .env
