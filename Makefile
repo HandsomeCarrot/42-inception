@@ -7,12 +7,20 @@ COMPOSE := docker compose -f $(COMPOSE_FILE)
 
 # --- Inception environment variables ---------------------------------------------------------
 
-# Bind mount host directories
-DATA_DIR := /home/vpoka/data
-DB_DIR := $(DATA_DIR)/database
-WEB_DIR := $(DATA_DIR)/website
+-include srcs/.env
 
-export DATA_DIR DB_DIR WEB_DIR
+# Bind mount host directories
+# Same variables (and defaults) as the volume paths in srcs/docker-compose.yml.
+# Values from srcs/.env take precedence; command line overrides both, e.g.
+#   make setup-dirs DATA_ROOT_PATH=/srv/inception
+# DATA_ROOT_PATH is the parent directory; DATA_DRIVE_DIR and WEB_DRIVE_DIR
+# are just the directory names of the two volumes inside it, so the full
+# paths are DATA_ROOT_PATH/DATA_DRIVE_DIR and DATA_ROOT_PATH/WEB_DRIVE_DIR.
+DATA_ROOT_PATH ?= /home/vpoka/data
+DATA_DRIVE_DIR ?= database
+WEB_DRIVE_DIR ?= website
+
+export DATA_ROOT_PATH DATA_DRIVE_DIR WEB_DRIVE_DIR
 
 # --- Template files ---------------------------------------------------------
 
@@ -48,7 +56,7 @@ define INCEPTION_ENV_TEMPLATE
 #     - WordPress downloads its version and creates wp-config.php, the site
 #       URL, the admin account and the extra user from them.
 #   They are then baked into the persistent volumes (the host directories
-#   DATA_DRIVE_PATH / WEB_DRIVE_PATH). Changing them afterwards has NO effect
+#   under DATA_ROOT_PATH). Changing them afterwards has NO effect
 #   on the installed project, and values out of sync with it will break it.
 #   To change them for real, EVERYTHING must be deleted and reinstalled,
 #   including all persistent storage:
@@ -98,9 +106,16 @@ define INCEPTION_ENV_TEMPLATE
 # Volume paths (host paths of the persistent storage). Changing these points
 # the project at a different (empty) host directory; already stored data
 # simply stays in the old location.
+# DATA_ROOT_PATH is the parent directory of the persistent storage;
+# DATA_DRIVE_DIR and WEB_DRIVE_DIR are just the directory names of the two
+# volumes inside it, so the full paths are DATA_ROOT_PATH/DATA_DRIVE_DIR
+# and DATA_ROOT_PATH/WEB_DRIVE_DIR.
+# 'make fclean' removes DATA_ROOT_PATH entirely, so no empty parent
+# directory is left behind.
 
-# DATA_DRIVE_PATH=/home/vpoka/data/database
-# WEB_DRIVE_PATH=/home/vpoka/data/website
+# DATA_ROOT_PATH=/home/vpoka/data
+# DATA_DRIVE_DIR=database
+# WEB_DRIVE_DIR=website
 
 # WORDPRESS_FPM_PORT is re-read by php-fpm, nginx and the healthchecks on
 # every start, so it can be changed at any time.
@@ -232,8 +247,8 @@ setup-env:
 
 setup-dirs:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Creating host directories '$(DB_DIR)' and '$(WEB_DIR)'\n"
-	@mkdir -p $(DB_DIR) $(WEB_DIR)
+	@printf "$(STEP_PREFIX) Creating host directories '$(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR)' and '$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)'\n"
+	@mkdir -p $(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR) $(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)
 
 setup-secrets:
 	$(log_target)
@@ -249,8 +264,8 @@ setup-secrets:
 
 rm-dirs:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Removing host data directory '$(DATA_DIR)'\n"
-	@sudo rm -rf $(DATA_DIR)
+	@printf "$(STEP_PREFIX) Removing host data directory '$(DATA_ROOT_PATH)' (incl. '$(DATA_DRIVE_DIR)' and '$(WEB_DRIVE_DIR)')\n"
+	@sudo rm -rf $(DATA_ROOT_PATH)
 
 rm-env:
 	$(log_target)
@@ -295,7 +310,7 @@ help:
 	@printf "  - setup-dirs    : Create host data directories\n"
 	@printf "  - setup-secrets : Generate missing secret placeholder files\n"
 	@printf "  -----\n"
-	@printf "  - rm-dirs       : Remove host data directory\n"
+	@printf "  - rm-dirs       : Remove the host data directory (all persistent data)\n"
 	@printf "  - rm-env        : Remove srcs/.env\n"
 	@printf "  - rm-secrets    : Remove secret files\n"
 	@printf "  -----\n"

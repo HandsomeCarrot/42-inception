@@ -122,14 +122,14 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${DATA_DRIVE_PATH:-/home/vpoka/data/database}
+      device: ${DATA_ROOT_PATH:-/home/vpoka/data}/${DATA_DRIVE_DIR:-database}
 # -----
   web-drive:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${WEB_DRIVE_PATH:-/home/vpoka/data/website}
+      device: ${DATA_ROOT_PATH:-/home/vpoka/data}/${WEB_DRIVE_DIR:-website}
 # ==============================================================================
 secrets:
   mariadb_root_password:
