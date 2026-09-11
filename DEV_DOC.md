@@ -158,7 +158,7 @@ Runtime TLS setup belongs in the NGINX entry script because keys and certificate
 
 ### Environment configuration
 
-Expected location: `srcs/.env` (next to `srcs/docker-compose.yml`). Compose loads that file automatically. `make setup` creates it from the Makefile template.
+Expected location: `srcs/.env` (next to `srcs/docker-compose.yml`). Compose loads that file automatically. `make setup` creates it from the Makefile template: every variable is listed commented out at its default value, grouped into labelled sections (domain, database, WordPress, ports, volumes) so settings are easy to find. Uncomment a line and edit it to override a default.
 
 The same names may also be set in the process environment; a set shell variable overrides `srcs/.env`. Do not put passwords in either place.
 

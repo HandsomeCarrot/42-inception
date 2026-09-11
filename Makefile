@@ -9,13 +9,7 @@ COMPOSE := docker compose -f $(COMPOSE_FILE)
 
 -include srcs/.env
 
-# Bind mount host directories
-# Same variables (and defaults) as the volume paths in srcs/docker-compose.yml.
-# Values from srcs/.env take precedence; command line overrides both, e.g.
-#   make setup-dirs DATA_ROOT_PATH=/srv/inception
-# DATA_ROOT_PATH is the parent directory; DATA_DRIVE_DIR and WEB_DRIVE_DIR
-# are just the directory names of the two volumes inside it, so the full
-# paths are DATA_ROOT_PATH/DATA_DRIVE_DIR and DATA_ROOT_PATH/WEB_DRIVE_DIR.
+# Bind mount host directories; defaults match the volume paths in srcs/docker-compose.yml
 DATA_ROOT_PATH ?= /home/vpoka/data
 DATA_DRIVE_DIR ?= database
 WEB_DRIVE_DIR ?= website
@@ -32,62 +26,17 @@ SECRETS :=	mariadb_root_password \
 			wordpress_user_password
 
 define INCEPTION_ENV_TEMPLATE
-# =============================================================================
-# Inception environment file (srcs/.env)
-# =============================================================================
-# This file holds the non-sensitive configuration used by the services.
-# Passwords are NOT set here; they live in docker secrets (srcs/secrets/).
-#
-# HOW THIS FILE WORKS
-#   Every variable is commented out and pre-filled with its default value.
-#   The defaults are declared in srcs/docker-compose.yml and apply whenever a
-#   variable is left unset or empty here, so nothing has to be filled out to
-#   run the project. To change a value, uncomment its line and edit it.
-#
-# REQUIRED (no default value)
-#   WORDPRESS_DOMAIN is the only variable docker compose REQUIRES: when it is
-#   unset or empty, compose aborts with an error instead of starting. It must
-#   be set before the first start.
-#
-# FIRST START ONLY (baked into persistent storage)
-#   All variables in the sections marked below are read only during the very
-#   first start, while the project is being installed:
-#     - MariaDB creates the database and its user from them.
-#     - WordPress downloads its version and creates wp-config.php, the site
-#       URL, the admin account and the extra user from them.
-#   They are then baked into the persistent volumes (the host directories
-#   under DATA_ROOT_PATH). Changing them afterwards has NO effect
-#   on the installed project, and values out of sync with it will break it.
-#   To change them for real, EVERYTHING must be deleted and reinstalled,
-#   including all persistent storage:
-#       make fclean      # removes .env, secrets and ALL persistent data
-#       make setup
-#       make
-#
-# SAFE TO CHANGE ANYTIME
-#   The remaining variables (volume paths and WORDPRESS_FPM_PORT) are re-read
-#   on every start, so they can be changed at any time.
-# =============================================================================
-
-# --- REQUIRED + FIRST START ONLY (no default: compose errors out if unset) ---
-# Domain the site is served from (also add it to /etc/hosts, e.g.
-# "127.0.0.1 vpoka.42.fr"). Written into the WordPress site URL at install.
-
+# --- Domain (required) ---
 # WORDPRESS_DOMAIN=vpoka.42.fr
 
-# --- FIRST START ONLY: Database (baked into the database volume) -------------
-# Used once, when MariaDB initialises its data volume and when WordPress
-# generates wp-config.php.
-
+# --- Database ---
 # WORDPRESS_DB_NAME=wordpress
 # WORDPRESS_DB_USER=wordpress
 # WORDPRESS_DB_TABLE_PREFIX=wordpress_
 # DB_CHARSET=utf8mb4
 # DB_COLLATE=utf8mb4_uca1400_ai_ci
 
-# --- FIRST START ONLY: WordPress install (baked into the web volume / DB) ----
-# Used once, when WordPress downloads its core and installs itself.
-
+# --- WordPress ---
 # WORDPRESS_VERSION=7.0.4
 # WORDPRESS_TITLE=Inception
 # WORDPRESS_ADMIN_NAME=owner
@@ -95,33 +44,15 @@ define INCEPTION_ENV_TEMPLATE
 # WORDPRESS_USER_NAME=author
 # WORDPRESS_USER_EMAIL=author@invalid.email
 
-# --- FIRST START ONLY: Ports (written into WordPress' configuration) ---------
-# NGINX_PORT and MARIADB_PORT end up in the site URL / wp-config.php on first
-# start, so changing them later requires the full wipe described above.
-
+# --- Ports ---
 # NGINX_PORT=443
 # MARIADB_PORT=3306
+# WORDPRESS_FPM_PORT=9000
 
-# --- SAFE TO CHANGE ANYTIME: applied on every (re)start ----------------------
-# Volume paths (host paths of the persistent storage). Changing these points
-# the project at a different (empty) host directory; already stored data
-# simply stays in the old location.
-# DATA_ROOT_PATH is the parent directory of the persistent storage;
-# DATA_DRIVE_DIR and WEB_DRIVE_DIR are just the directory names of the two
-# volumes inside it, so the full paths are DATA_ROOT_PATH/DATA_DRIVE_DIR
-# and DATA_ROOT_PATH/WEB_DRIVE_DIR.
-# 'make fclean' removes DATA_ROOT_PATH entirely, so no empty parent
-# directory is left behind.
-
+# --- Volumes ---
 # DATA_ROOT_PATH=/home/vpoka/data
 # DATA_DRIVE_DIR=database
 # WEB_DRIVE_DIR=website
-
-# WORDPRESS_FPM_PORT is re-read by php-fpm, nginx and the healthchecks on
-# every start, so it can be changed at any time.
-
-# WORDPRESS_FPM_PORT=9000
-
 endef
 export INCEPTION_ENV_TEMPLATE
 
