@@ -43,7 +43,7 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-        # restart: true
+        restart: true
     restart: always
     volumes:
       - web-drive:/home/web-drive:rw
@@ -93,6 +93,7 @@ services:
     depends_on:
       wordpress:
         condition: service_healthy
+        restart: true
     restart: always
     volumes:
       - web-drive:/home/web-drive:ro
@@ -149,4 +150,3 @@ networks:
 # -----
   web-net:
     driver: bridge
-    # internal: true # if uncommented, installation of wordpress files from internet fails, as this setting does not allow ANY connection to the outside
