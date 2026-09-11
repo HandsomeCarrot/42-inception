@@ -77,9 +77,12 @@ endef
 STEP_PREFIX := \t$(C_CYAN)->$(C_RESET)
 
 # --- Default rules ----------------------------------
-.PHONY: all clean fclean re up down start stop restart build pause unpause ps logs exec run setup setup-env setup-dirs setup-secrets rm-dirs rm-env rm-secrets help
+.PHONY: all clean fclean re up attached down start stop restart build pause unpause ps logs exec run setup setup-env setup-dirs setup-secrets rm-dirs rm-env rm-secrets help
 
-all: up
+all:
+	$(log_target)
+	@printf "$(STEP_PREFIX) Building and starting containers in detached mode\n"
+	@$(COMPOSE) up --build -d
 
 clean:
 	$(log_target)
@@ -94,13 +97,13 @@ re: clean all
 
 up:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Building and starting containers in detached mode\n"
-	@$(COMPOSE) up --build
+	@printf "$(STEP_PREFIX) Starting containers in detached mode\n"
+	@$(COMPOSE) up -d
 
-detached:
+attached:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Building and starting containers in detached mode\n"
-	@$(COMPOSE) up --build -d
+	@printf "$(STEP_PREFIX) Starting containers in attached mode\n"
+	@$(COMPOSE) up
 
 build:
 	$(log_target)
@@ -212,12 +215,13 @@ rm-secrets:
 help:
 	@printf "$(C_BOLD)Available targets:$(C_RESET) %s\n"
 	@printf "$(C_BOLD)- Standard commands$(C_RESET) %s\n"
-	@printf "  - all           : (default) Run setup then build and start containers\n"
+	@printf "  - all           : (default) Build images and start containers in detached mode\n"
 	@printf "  - clean         : Remove all docker resources: containers, networks, volumes, images\n"
 	@printf "  - fclean        : clean + remove .env, secrets and host data (!all persistent data lost!)\n"
 	@printf "  - re            : Full rebuild: clean then all (keeps config and data)\n"
 	@printf "$(C_BOLD)- Docker compose commands$(C_RESET) %s\n"
-	@printf "  - up            : Build and start containers in detached mode\n"
+	@printf "  - up            : Start containers in detached mode (no build)\n"
+	@printf "  - attached      : Start containers in attached mode (no build)\n"
 	@printf "  - down          : Stop and remove containers\n"
 	@printf "  - start         : Start existing containers [S]\n"
 	@printf "  - stop          : Stop running containers [S]\n"
