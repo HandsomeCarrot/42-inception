@@ -1,6 +1,6 @@
 # Inception
 
-A containerized WordPress stack built with Docker Compose. It runs **NGINX**, WordPress with PHP-FPM, and MariaDB as separate services: NGINX is the HTTPS entry point, WordPress serves the application internally, and MariaDB provides persistent database storage.
+A containerized WordPress stack built with Docker Compose. It runs NGINX, WordPress with PHP-FPM, and MariaDB as separate services: NGINX is the HTTPS entry point, WordPress serves the application internally, and MariaDB provides persistent database storage.
 
 The infrastructure follows the constraints of the 42 Inception project: services are built locally, isolated from one another, and orchestrated as a reproducible local deployment.
 
@@ -63,16 +63,65 @@ See [USER_DOC.md](USER_DOC.md) for the complete setup, configuration, operation,
 
 The project was developed with the following documentation as primary references:
 
-- [Docker documentation](https://docs.docker.com/)
-- [Docker Compose documentation](https://docs.docker.com/compose/)
-- [Docker secrets documentation](https://docs.docker.com/engine/swarm/secrets/)
-- [Docker networking documentation](https://docs.docker.com/engine/network/)
-- [Docker volumes and bind mounts documentation](https://docs.docker.com/engine/storage/)
-- [NGINX documentation](https://nginx.org/en/docs/)
-- [WordPress documentation](https://wordpress.org/documentation/)
-- [WP-CLI documentation](https://wp-cli.org/)
-- [MariaDB documentation](https://mariadb.com/kb/en/documentation/)
-- [Alpine Linux documentation](https://docs.alpinelinux.org/)
+#### General Inception
+
+- [Inception tutorial](https://dev.to/alejiri/docker-nginx-wordpress-mariadb-tutorial-inception42-1eok)
+- [Inception tutorial 2](https://sizgunan.medium.com/building-a-robust-web-infrastructure-with-docker-a-deep-dive-into-mariadb-nginx-and-wordpress-cc56bbaa04d1)
+- [Man-pages for shell commands](https://man7.org/linux/man-pages/index.html)
+
+#### Docker
+
+- [Docker interpolation](https://docs.docker.com/reference/compose-file/interpolation)
+- [Docker entrypoint guide](https://www.geeksforgeeks.org/devops/what-is-entrypoint-in-dockerfile/)
+- [Heredocs in Dockerfiles](https://www.docker.com/blog/introduction-to-heredocs-in-dockerfiles/)
+- [Dockerfile references](https://docs.docker.com/reference/dockerfile/)
+- [Docker compose services](https://docs.docker.com/reference/compose-file/services/)
+- [Dockerfile best practices](https://docs.docker.com/build/building/best-practices/)
+- [Writing a dockerfile](https://docs.docker.com/get-started/docker-concepts/building-images/writing-a-dockerfile/)
+
+#### Alpine Linux
+
+- [Setting up a user](https://wiki.alpinelinux.org/wiki/Setting_up_a_new_user)
+- [Shell management](https://wiki.alpinelinux.org/wiki/Shell_management?__goaway_challenge=cookie&__goaway_id=8b695c5bd090dad394694a7946810bc3&__goaway_referer=https%3A%2F%2Fwiki.alpinelinux.org%2Fwiki%2FBusyBox#Ash_shell)
+- [Enable and start services](https://www.cyberciti.biz/faq/how-to-enable-and-start-services-on-alpine-linux/)
+
+#### MariaDB
+
+- [Create database for wordpress](https://developer.wordpress.org/advanced-administration/before-install/creating-database/)
+- [SQL quotation rules](https://www.geeksforgeeks.org/sql/when-to-use-single-quotes-double-quotes-and-backticks-in-sql/)
+- [Set Character sets and Collations](https://mariadb.com/docs/server/reference/data-types/string-data-types/character-sets/setting-character-sets-and-collations)
+- [Basic SQL commands](https://www.geeksforgeeks.org/sql/basic-sql-commands/)
+- [Secure mariadb installation](https://technoroots.org/insights/how-to-secure-mariadb-after-installation-on-ubuntu-GfeCf)
+- [mariadb on alpine linux](https://wiki.alpinelinux.org/wiki/MariaDB)
+- [remote client access guide](https://mariadb.com/docs/server/mariadb-quickstart-guides/mariadb-remote-connection-guide)
+- [mariadb-install-db script docs](https://mariadb.com/docs/server/clients-and-utilities/deployment-tools/mariadb-install-db)
+- [configuring with option files](https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/configuring-mariadb/configuring-mariadb-with-option-files#default-option-file-hierarchy)
+- [Docs](https://mariadb.org/documentation/)
+- [server system variable list](https://mariadb.com/docs/server/server-management/variables-and-modes/server-system-variables#port)
+- [options](https://mariadb.com/docs/server/server-management/starting-and-stopping-mariadb/mariadbd-options)
+- [primer guide](https://mariadb.com/docs/server/mariadb-quickstart-guides/mariadb-usage-guide)
+- [DockerHub official image](https://hub.docker.com/_/mariadb)
+
+#### WordPress
+
+- [Check php-fpm health](https://stackoverflow.com/questions/14915147/how-to-check-if-php-fpm-is-running-properly)
+- [php-fpm process manager modes](https://stackharbor.com/en/knowledge-base/php-fpm-process-manager-static-vs-dynamic/)
+- [install wp-cli](https://make.wordpress.org/cli/handbook/guides/installing/)
+- [wp-cli command 'core install'](https://developer.wordpress.org/cli/commands/core/install/)
+- [WordPress software compatibility list](https://make.wordpress.org/hosting/handbook/compatibility/#wordpress-php-mysql-mariadb-versions)
+- [WordPress server environment](https://make.wordpress.org/hosting/handbook/server-environment/)
+- [WordPress docs](https://wordpress.org/documentation/)
+- [DockerHub official image](https://hub.docker.com/_/wordpress)
+- [WordPress on Alpine Linux](https://wiki.alpinelinux.org/wiki/WordPress)
+
+#### nginx
+
+- [ssl certificate key lengths](https://stackoverflow.com/questions/589834/what-rsa-key-length-should-i-use-for-my-ssl-certificates)
+- [openssl command docs](https://docs.openssl.org/1.1.1/man1/)
+- [install nginx open-source](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-open-source/#repository-contents)
+- [NGINX SSL Termination](https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-http/)
+- [nginx on alpine linux](https://wiki.alpinelinux.org/wiki/Nginx)
+- [DockerHub official image](https://hub.docker.com/_/nginx)
 
 ### AI usage
 
