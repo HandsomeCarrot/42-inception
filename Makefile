@@ -8,7 +8,7 @@ COMPOSE := docker compose -f $(COMPOSE_FILE)
 # --- Inception environment variables ---------------------------------------------------------
 
 # Bind mount host directories
-DATA_DIR := /home/$(USER)/inception-data
+DATA_DIR := /home/vpoka/data
 DB_DIR := $(DATA_DIR)/database
 WEB_DIR := $(DATA_DIR)/website
 
