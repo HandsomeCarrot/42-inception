@@ -45,8 +45,8 @@ Needs Docker Engine, Docker Compose v2, and (for the documented workflow) GNU Ma
    cd 42-inception
    ```
 
-2. First time only: create and fill configuration, secrets, and the local hostname — [First-time setup](DEV_DOC.md#first-time-setup).
-3. Build and start: `make`
+2. First time only: create and fill configuration, secrets, data directories, and the local hostname — [First-time setup](DEV_DOC.md#first-time-setup).
+3. Build and start: `make` (checks `.env`, secrets, domain, and data directories first)
 4. Open `https://<your-domain>`
 5. Afterwards, start and stop with the commands in [USER_DOC.md](USER_DOC.md#start-and-stop). `make help` lists every target.
 

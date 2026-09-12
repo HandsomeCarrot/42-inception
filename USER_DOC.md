@@ -2,7 +2,7 @@
 
 How to run, reach, and check an already configured Inception stack.
 
-First-time setup (clone, `.env`, secrets, hostname): [DEV_DOC.md](DEV_DOC.md#first-time-setup). What the project is and why it is built this way: [README.md](README.md).
+First-time setup (clone, `.env`, secrets, data directories, hostname): [DEV_DOC.md](DEV_DOC.md#first-time-setup). What the project is and why it is built this way: [README.md](README.md).
 
 ## Services
 
@@ -113,7 +113,7 @@ Expected for a local certificate. Open the configured domain, not `localhost`.
 
 ### A container exits during startup
 
-`make logs` (or `make logs S=<service>`). Missing or empty secret files and an unset `WORDPRESS_DOMAIN` are the usual causes. Deeper checks: [Debugging and maintenance](DEV_DOC.md#debugging-and-maintenance).
+`make logs` (or `make logs S=<service>`). Missing or empty secret files and an unset `WORDPRESS_DOMAIN` are the usual causes. `make check` verifies `.env`, secrets, domain, and host data directories. Deeper checks: [Debugging and maintenance](DEV_DOC.md#debugging-and-maintenance).
 
 ### A full cleanup removed my site
 

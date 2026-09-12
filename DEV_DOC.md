@@ -22,10 +22,10 @@ From the repository root:
 ```sh
 git clone https://github.com/HandsomeCarrot/42-inception.git
 cd 42-inception
-make setup
+make templates
 ```
 
-`make setup` creates `srcs/.env` (commented template), the host data directories, and empty files under `srcs/secrets/`. Fill those before the first start. Do not put passwords in `srcs/.env` or the process environment, and do not commit generated credentials.
+`make templates` creates `srcs/.env` (commented template) and empty files under `srcs/secrets/`. It does not create host data directories. Fill `.env` and the secret files before the first start. Do not put passwords in `srcs/.env` or the process environment, and do not commit generated credentials.
 
 1. In `srcs/.env`, uncomment and set at least `WORDPRESS_DOMAIN` (required) and `DATA_ROOT_PATH` (default is `/home/vpoka/data`). Other variables may stay commented; Compose defaults apply. Details: [Configuration and secrets](#configuration-and-secrets).
 2. Put one password (no quotes, no extra lines) in each of:
@@ -35,7 +35,13 @@ make setup
    - `srcs/secrets/wordpress_admin_password.txt`
    - `srcs/secrets/wordpress_user_password.txt`
 
-3. Map the domain on Linux:
+3. Create the host data directories (after `DATA_ROOT_PATH` is set):
+
+   ```sh
+   make dirs
+   ```
+
+4. Map the domain on Linux:
 
    ```text
    127.0.0.1  <domain-name>
@@ -43,25 +49,25 @@ make setup
 
    in `/etc/hosts` (administrator privileges). Other operating systems use a different hosts file.
 
-4. Build and start:
+5. Build and start (`make` / `make all` runs `check` first: `.env`, secrets, domain, and data directories):
 
    ```sh
    make
    ```
 
-5. Check `make ps`, then open `https://<domain-name>`.
+6. Check `make ps`, then open `https://<domain-name>`.
 
 ## Configuration and secrets
 
 ### Environment configuration
 
-Expected location: `srcs/.env`, next to `srcs/docker-compose.yml`. Compose loads that file automatically. `make setup` writes every variable commented out at its default, grouped by domain, database, WordPress, ports, and volumes. Uncomment a line to override a default.
+Expected location: `srcs/.env`, next to `srcs/docker-compose.yml`. Compose loads that file automatically. `make templates` / `make env-template` writes every variable commented out at its default, grouped by domain, database, WordPress, ports, and volumes. Uncomment a line to override a default.
 
 A variable already set in the process environment overrides `srcs/.env`. Do not put passwords in either place.
 
 `WORDPRESS_DOMAIN` is required (`${WORDPRESS_DOMAIN:?}`). If it is unset or empty, Compose refuses to start. Every other Compose variable has a default in `srcs/docker-compose.yml`.
 
-Values marked **first install only** are written into persistent storage. Changing them later has no effect on an already initialized site; that needs `make fclean`, then setup and start again.
+Values marked **first install only** are written into persistent storage. Changing them later has no effect on an already initialized site; that needs `make fclean`, then `make templates`, `make dirs`, and `make` again.
 
 | Variable | Default | Change? | Used by | Applied |
 | --- | --- | --- | --- | --- |
@@ -80,11 +86,11 @@ Values marked **first install only** are written into persistent storage. Changi
 | `NGINX_PORT` | `443` | Leave default (published HTTPS port) | nginx, wordpress | First install (site URL); port publish on every start |
 | `MARIADB_PORT` | `3306` | Leave default (internal) | mariadb, wordpress | First install only |
 | `WORDPRESS_FPM_PORT` | `9000` | Leave default unless it conflicts | wordpress, nginx | Every start |
-| `DATA_ROOT_PATH` | `/home/vpoka/data` | Set to your storage parent directory | Compose volume devices, Makefile (`setup-dirs` / `rm-dirs`) | Every start |
+| `DATA_ROOT_PATH` | `/home/vpoka/data` | Set to your storage parent directory | Compose volume devices, Makefile (`dirs` / `rm-dirs`) | Every start |
 | `DATA_DRIVE_DIR` | `database` | Directory name of the MariaDB storage | Compose volume `data-drive`, Makefile | Every start |
 | `WEB_DRIVE_DIR` | `website` | Directory name of the WordPress storage | Compose volume `web-drive`, Makefile | Every start |
 
-The Makefile reads `srcs/.env` and exports the volume variables so `setup-dirs` / `rm-dirs` use the same paths as Compose. Full host paths are `DATA_ROOT_PATH/DATA_DRIVE_DIR` and `DATA_ROOT_PATH/WEB_DRIVE_DIR`. `rm-dirs` removes `DATA_ROOT_PATH` entirely.
+The Makefile reads `srcs/.env` and exports the volume variables so `dirs` / `rm-dirs` use the same paths as Compose. Full host paths are `DATA_ROOT_PATH/DATA_DRIVE_DIR` and `DATA_ROOT_PATH/WEB_DRIVE_DIR`. `rm-dirs` removes `DATA_ROOT_PATH` entirely.
 
 Compose also injects secret *path* variables into containers. These are fixed mount paths, not passwords. Do not set them in `srcs/.env`:
 
@@ -97,7 +103,7 @@ Compose also injects secret *path* variables into containers. These are fixed mo
 
 ### Docker secrets
 
-`make setup` creates empty placeholders under `srcs/secrets`. Each file must contain a single password before the first start. Compose maps them as Docker secrets; containers see them under `/run/secrets/<secret-name>` (no `.txt` suffix).
+`make templates` / `make secrets-template` creates empty placeholders under `srcs/secrets`. Each file must contain a single password before the first start. Compose maps them as Docker secrets; containers see them under `/run/secrets/<secret-name>` (no `.txt` suffix).
 
 | Host file | Compose secret name | Mounted as | Consumed by |
 | --- | --- | --- | --- |
@@ -125,9 +131,9 @@ When changing a secret name, environment variable, path, or setup script, update
 ├── USER_DOC.md
 ├── DEV_DOC.md
 └── srcs/
-    ├── .env                          # generated by `make setup`; not committed
+    ├── .env                          # generated by `make templates`; not committed
     ├── docker-compose.yml
-    ├── secrets/                      # generated by `make setup`; not committed
+    ├── secrets/                      # generated by `make templates`; not committed
     │   ├── mariadb_root_password.txt
     │   ├── mariadb_user_password.txt
     │   ├── wordpress_admin_password.txt
@@ -271,7 +277,7 @@ From the repository root, `make <target>` is `docker compose -f srcs/docker-comp
 
 | Make | Docker Compose | Notes |
 | --- | --- | --- |
-| `make` / `make all` | `docker compose -f srcs/docker-compose.yml up --build -d` | Build and start detached |
+| `make` / `make all` | `docker compose -f srcs/docker-compose.yml up --build -d` | Runs `check` first, then build and start detached |
 | `make up` | `… up -d` | Start, no rebuild |
 | `make attached` | `… up` | Foreground |
 | `make down` | `… down` | Stop and remove containers; keep images, host data, secrets |
@@ -286,7 +292,7 @@ From the repository root, `make <target>` is `docker compose -f srcs/docker-comp
 | `make re` | `make clean` then `make all` | Rebuilds stack; keeps `.env`, secrets, host dirs |
 | `make fclean` | `make clean` plus delete `.env`, secrets, and `DATA_ROOT_PATH` | Not a Compose command |
 
-Setup helpers have no Compose equivalent: `make setup`, `make setup-env`, `make setup-dirs`, `make setup-secrets`, and the matching `rm-*` targets.
+Helpers with no Compose equivalent: `make templates`, `make env-template`, `make secrets-template`, `make dirs`, `make check` (`env-check`, `secrets-check`, `dirs-check`, `domain-check`), and the matching `rm-*` targets.
 
 Examples:
 
@@ -323,7 +329,7 @@ make logs
 Use `make exec S=<service>` (or `make help`) for a shell in a running container. Order of checks:
 
 1. Docker, Compose, and Buildx are available.
-2. `srcs/.env` exists, `WORDPRESS_DOMAIN` is set, and the four secret files are non-empty.
+2. `make check` (or by hand: `srcs/.env` exists, `WORDPRESS_DOMAIN` is set, secret files and host data directories are present).
 3. Container status and logs.
 4. NGINX is serving `https://<domain>` (not `localhost`).
 5. WordPress/PHP-FPM can reach MariaDB by service name on `data-net`.

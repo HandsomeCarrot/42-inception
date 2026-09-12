@@ -8,9 +8,13 @@ COMPOSE := docker compose -f $(COMPOSE_FILE)
 
 -include srcs/.env
 
-DATA_ROOT_PATH ?= /home/vpoka/data
-DATA_DRIVE_DIR ?= database
-WEB_DRIVE_DIR ?= website
+DEFAULT_DATA_ROOT_PATH := /home/vpoka/data
+DEFAULT_DATA_DRIVE_DIR := database
+DEFAULT_WEB_DRIVE_DIR := website
+
+DATA_ROOT_PATH ?= $(DEFAULT_DATA_ROOT_PATH)
+DATA_DRIVE_DIR ?= $(DEFAULT_DATA_DRIVE_DIR)
+WEB_DRIVE_DIR ?= $(DEFAULT_WEB_DRIVE_DIR)
 
 export DATA_ROOT_PATH DATA_DRIVE_DIR WEB_DRIVE_DIR
 
@@ -66,9 +70,9 @@ endef
 STEP_PREFIX := \t$(C_CYAN)->$(C_RESET)
 
 # --- Default rules ----------------------------------------------------
-.PHONY: all clean fclean re up attached down start stop restart build pause unpause ps logs exec run setup setup-env setup-dirs setup-secrets rm-dirs rm-env rm-secrets help
+.PHONY: all check env-check secrets-check dirs-check domain-check clean fclean re up attached down start stop restart build pause unpause ps logs exec run templates env-template dirs secrets-template rm-dirs rm-env rm-secrets help
 
-all:
+all: check
 	$(log_target)
 	@printf "$(STEP_PREFIX) Building and starting containers in detached mode\n"
 	@$(COMPOSE) up --build -d
@@ -155,11 +159,62 @@ run:
 
 # --- Extra rules ------------------------------------------------------
 
-setup: setup-env setup-dirs setup-secrets
+check: env-check secrets-check dirs-check domain-check
+	$(log_target)
+
+env-check:
+	$(log_target)
+	@if [ ! -f srcs/.env ]; then \
+		printf "$(C_YELLOW)[ERROR] missing 'srcs/.env' (run: make env-template)$(C_RESET)\n"; \
+		exit 1; \
+	fi
+	@printf "$(STEP_PREFIX) domain         : $(WORDPRESS_DOMAIN)\n"
+	@printf "$(STEP_PREFIX) public port    : $(or $(NGINX_PORT),443)\n"
+	@printf "$(STEP_PREFIX) admin username : $(or $(WORDPRESS_ADMIN_NAME),owner)\n"
+
+secrets-check:
+	$(log_target)
+	@missing=0; \
+	for secret in $(SECRETS); do \
+		if [ ! -f "$(SECRETS_DIR)/$$secret.txt" ]; then \
+			printf "$(C_YELLOW)[ERROR] missing '$(SECRETS_DIR)/$$secret.txt' (run: make secrets-template)$(C_RESET)\n"; \
+			missing=1; \
+		fi; \
+	done; \
+	if [ "$$missing" -ne 0 ]; then \
+		exit 1; \
+	fi
+	@printf "$(STEP_PREFIX) found\n"
+
+dirs-check:
+	$(log_target)
+	@missing=0; \
+	if [ ! -d "$(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR)" ]; then \
+		printf "$(C_YELLOW)[ERROR] missing directory '$(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR)' (run: make dirs)$(C_RESET)\n"; \
+		missing=1; \
+	fi; \
+	if [ ! -d "$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)" ]; then \
+		printf "$(C_YELLOW)[ERROR] missing directory '$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)' (run: make dirs)$(C_RESET)\n"; \
+		missing=1; \
+	fi; \
+	if [ "$$missing" -ne 0 ]; then \
+		exit 1; \
+	fi
+	@printf "$(STEP_PREFIX) found '$(DATA_ROOT_PATH)/*'\n"
+
+domain-check:
+	$(log_target)
+	@if [ -z "$(WORDPRESS_DOMAIN)" ]; then \
+		printf "$(C_YELLOW)[ERROR] WORDPRESS_DOMAIN is not set (uncomment it in srcs/.env)$(C_RESET)\n"; \
+		exit 1; \
+	fi
+	@printf "$(STEP_PREFIX) found\n"
+
+templates: env-template secrets-template
 	$(log_target)
 	@printf '$(C_YELLOW)[WARNING] Before starting the services, please fill out:\n\t1. srcs/.env\n\t2. srcs/secrets/*.txt\n$(C_RESET)'
 
-setup-env:
+env-template:
 	$(log_target)
 	@printf "$(STEP_PREFIX) Checking 'srcs/.env'\n"
 	@if [ ! -f srcs/.env ]; then \
@@ -169,12 +224,23 @@ setup-env:
 		printf "$(STEP_PREFIX) 'srcs/.env' already exists\n"; \
 	fi
 
-setup-dirs:
+dirs:
 	$(log_target)
-	@printf "$(STEP_PREFIX) Creating host directories '$(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR)' and '$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)'\n"
-	@mkdir -p $(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR) $(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)
+	@printf "$(STEP_PREFIX) Checking host data directories\n"
+	@if [ ! -d "$(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR)" ]; then \
+		mkdir -p "$(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR)"; \
+		printf "$(STEP_PREFIX) created '$(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR)'\n"; \
+	else \
+		printf "$(STEP_PREFIX) '$(DATA_ROOT_PATH)/$(DATA_DRIVE_DIR)' already exists\n"; \
+	fi
+	@if [ ! -d "$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)" ]; then \
+		mkdir -p "$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)"; \
+		printf "$(STEP_PREFIX) created '$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)'\n"; \
+	else \
+		printf "$(STEP_PREFIX) '$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)' already exists\n"; \
+	fi
 
-setup-secrets:
+secrets-template:
 	$(log_target)
 	@printf "$(STEP_PREFIX) Creating secret files in $(SECRETS_DIR)\n"
 	@for secret in $(SECRETS); do \
@@ -204,7 +270,7 @@ rm-secrets:
 help:
 	@printf "$(C_BOLD)Available targets:$(C_RESET) %s\n"
 	@printf "$(C_BOLD)- Standard commands$(C_RESET) %s\n"
-	@printf "  - all           : (default) Build images and start containers in detached mode\n"
+	@printf "  - all           : (default) Check setup, then build and start containers in detached mode\n"
 	@printf "  - clean         : Remove all docker resources: containers, networks, volumes, images\n"
 	@printf "  - fclean        : clean + remove .env, secrets and host data (!all persistent data lost!)\n"
 	@printf "  - re            : Full rebuild: clean then all (keeps config and data)\n"
@@ -229,10 +295,15 @@ help:
 	@printf "  - C=\"<command>\" : Command to run (exec/run only).\n"
 	@printf "                      - Examples: C=\"ls -la\"  C=\"mysql -u root -p\"\n"
 	@printf "$(C_BOLD)- Extra commands$(C_RESET) %s\n"
-	@printf "  - setup         : Run all setup steps below\n"
-	@printf "  - setup-env     : Generate srcs/.env from template (skips if exists)\n"
-	@printf "  - setup-dirs    : Create host data directories\n"
-	@printf "  - setup-secrets : Generate missing secret placeholder files\n"
+	@printf "  - check            : Run all check steps below (also run by all)\n"
+	@printf "  - env-check        : Verify srcs/.env exists; print domain, port, and admin name\n"
+	@printf "  - secrets-check    : Verify secret files exist\n"
+	@printf "  - dirs-check       : Verify host data directories exist\n"
+	@printf "  - domain-check     : Verify WORDPRESS_DOMAIN is set; print it\n"
+	@printf "  - templates        : Run env and secrets template steps below\n"
+	@printf "  - env-template     : Generate srcs/.env from template (skips if exists)\n"
+	@printf "  - secrets-template : Generate missing secret placeholder files\n"
+	@printf "  - dirs             : Create host data directories if missing\n"
 	@printf "  -----\n"
 	@printf "  - rm-dirs       : Remove the host data directory (all persistent data)\n"
 	@printf "  - rm-env        : Remove srcs/.env\n"
