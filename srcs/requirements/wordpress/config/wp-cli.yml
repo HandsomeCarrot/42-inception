@@ -1,3 +1,4 @@
+# makes all wp-cli commands operate on the shared web-drive volume
 path: /home/web-drive
 color: true
 quiet: true

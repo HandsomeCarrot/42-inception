@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Entrypoint: validates secrets, renders config templates, initializes the
+# database on first run, then execs the CMD. Idempotent — safe on every start.
+
 log()
 {
 	printf "\x1b[33m[ENTRY-SCRIPT]\x1b[0m $*\n"
@@ -29,8 +32,10 @@ export MARIADB_ROOT_PASSWORD MARIADB_USER_PASSWORD
 log "  -> success!"
 
 log "replacing environment variables in my.cnf"
+# envsubst is whitelisted — only these vars get substituted
 envsubst '$DB_CHARSET $DB_COLLATE $MARIADB_USER_PASSWORD $MARIADB_PORT' < /home/my.cnf > /etc/my.cnf
 
+# first run detection: datadir exists only after mariadb-install-db
 log "checking if base databases are created"
 if [ ! -d "/home/data-drive/mysql" ]; then
 	log "  -> error: creating..."
@@ -40,6 +45,7 @@ else
 	log "  -> success!"
 fi
 
+# db dirs exist only after setup.sql was applied (first run)
 log "checking if wordpress database exists"
 if [ ! -d "/home/data-drive/${WORDPRESS_DB_NAME}" ]; then
 	log "  -> error: creating..."

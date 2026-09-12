@@ -1,5 +1,6 @@
 FROM alpine:3.23
 
+# install wp-cli with GPG signature verification; .build deps removed in same layer
 RUN	set -eux; \
 	apk --cache=no add \
 		curl \
@@ -17,6 +18,7 @@ RUN	set -eux; \
 	rm wp-cli.phar.asc; \
 	apk del .build;
 
+# php-fpm runtime + extensions required by wordpress
 RUN	set -eux; \
 	apk --cache=no add \
 		fcgi \
@@ -36,6 +38,7 @@ RUN	set -eux; \
 		php85-iconv \
 	;
 
+# versioned binaries -> unversioned names; unprivileged user for php-fpm
 RUN	set -eux; \
 	ln -s /usr/bin/php85 /usr/bin/php; \
 	ln -s /usr/sbin/php-fpm85 /usr/sbin/php-fpm; \

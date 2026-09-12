@@ -1,5 +1,8 @@
 FROM alpine:3.23
 
+# Fetch nginx's official signing key, verify it against the pinned expected key
+# (bind-mounted from config/, diff fails the build on mismatch), then trust it
+# for apk. Protects against a swapped upstream key.
 RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_expected_key.txt \
 	set -eux; \
 	\
@@ -17,11 +20,14 @@ RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_exp
 	rm -f /tmp/nginx_deciphered_key.txt; \
 	mv /tmp/nginx_signing.rsa.pub /etc/apk/keys/; \
 	\
+	# nginx's own apk repo — newer package than alpine's
 	echo "@nginx https://nginx.org/packages/alpine/v3.23/main" >> /etc/apk/repositories; \
 	apk add --no-cache nginx@nginx; \
+	# placeholder key; real cert/key generated at first start by entry.sh
 	mkdir -p /etc/nginx/ssl/; \
 	touch /etc/nginx/ssl/inception.key;
 
+# raw_nginx.conf is an envsubst template, rendered to nginx.conf by entry.sh
 COPY config/nginx.conf /etc/nginx/raw_nginx.conf
 COPY config/nginx_security_headers.conf /etc/nginx/security_headers.conf
 COPY --chmod=+x config/entry.sh /usr/bin/entry

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Entrypoint: generates a self-signed TLS certificate on first start,
+# renders the nginx config template, then execs the CMD.
+
 log()
 {
 	printf "\x1b[33m[ENTRY-SCRIPT]\x1b[0m %s\n" "$*"

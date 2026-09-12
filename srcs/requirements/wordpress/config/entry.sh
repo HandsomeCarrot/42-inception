@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Entrypoint: validates secrets, installs/configures WordPress via wp-cli on
+# first run, then execs the CMD. Idempotent — safe on every start.
+
 log()
 {
 	printf "\x1b[33m[ENTRY-SCRIPT]\x1b[0m $*\n"
@@ -29,6 +32,7 @@ WORDPRESS_ADMIN_PASSWORD=$(cat "$WORDPRESS_ADMIN_PASSWORD_FILE")
 WORDPRESS_USER_PASSWORD=$(cat "$WORDPRESS_USER_PASSWORD_FILE")
 log "  -> success!"
 
+# 42 subject requirement: admin username must not contain "admin"
 log "Checking if admin username contains 'admin'"
 normalized_admin_name=$(echo "$WORDPRESS_ADMIN_NAME" | tr '[:upper:]' '[:lower:]')
 case "$normalized_admin_name" in
@@ -64,6 +68,7 @@ else
 	log "  -> present"
 fi
 
+# append port to site url only for non-standard https ports
 site_url="https://$WORDPRESS_DOMAIN"
 if [ "$NGINX_PORT" != "443" ]; then
 	site_url="$site_url:$NGINX_PORT"
