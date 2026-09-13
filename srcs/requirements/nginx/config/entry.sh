@@ -30,16 +30,24 @@ else
 	log "  -> present"
 fi
 
-log "Checking if the WordPress site configuration needs environment variable substitution"
+log "Checking if the site configurations need environment variable substitution"
 if [ -f /home/raw_wordpress.conf ]; then
-	log "  -> replacing environment variables"
+	log "  -> replacing environment variables in wordpress.conf"
 	envsubst '$WORDPRESS_DOMAIN $NGINX_PORT $WORDPRESS_FPM_PORT' < /home/raw_wordpress.conf > /etc/nginx/conf.d/wordpress.conf
-	log "  -> deleting unsubstituted file"
-	rm /home/raw_wordpress.conf
-	log "  -> done!"
 else
-	log "  -> already substituted"
+	log "  -> wordpress.conf already substituted"
 fi
+if [ -f /home/raw_adminer.conf ]; then
+	log "  -> replacing environment variables in adminer.conf"
+	envsubst '$ADMINER_SUBDOMAIN $WORDPRESS_DOMAIN $ADMINER_PORT $NGINX_PORT' < /home/raw_adminer.conf > /etc/nginx/conf.d/adminer.conf
+else
+	log "  -> adminer.conf already substituted"
+fi
+if [ -f /home/raw_wordpress.conf ] || [ -f /home/raw_adminer.conf ]; then
+	log "  -> deleting unsubstituted files"
+	rm /home/raw_*.conf
+fi
+log "  -> done!"
 
 log "Ended NGINX entry script"
 

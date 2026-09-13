@@ -10,9 +10,10 @@ Once the stack is up you get:
 
 - A WordPress site over HTTPS
 - The WordPress administration panel
-- A MariaDB database used only by WordPress (not published to the host)
+- The MariaDB database behind WordPress and Adminer (not published to the host)
+- Adminer, a database web UI on its own subdomain
 
-NGINX is the only process the host can connect to. WordPress/PHP-FPM and MariaDB stay on the private Docker networks.
+NGINX is the only process the host can connect to. WordPress/PHP-FPM, MariaDB, and Adminer stay on the private Docker networks.
 
 ## Access
 
@@ -27,6 +28,14 @@ Administration panel:
 ```text
 https://<domain-name>/wp-admin
 ```
+
+Adminer (database UI, subdomain from `ADMINER_SUBDOMAIN`, default `adminer`):
+
+```text
+https://<adminer-subdomain>.<domain-name>
+```
+
+In Adminer, use server `mariadb`, user `WORDPRESS_DB_USER` (default `wordpress`), and the password from `srcs/secrets/mariadb_user_password.txt`.
 
 Use the domain from `WORDPRESS_DOMAIN` in `srcs/.env`, not `localhost`. A browser warning for a locally generated TLS certificate is expected.
 
@@ -59,7 +68,7 @@ Run these from the repository root. Every `make` target below wraps `docker comp
 | Start existing containers | `make start` | `docker compose -f srcs/docker-compose.yml start` |
 | Restart | `make restart` | `docker compose -f srcs/docker-compose.yml restart` |
 
-Limit a command to one service with `S=nginx`, `S=wordpress`, or `S=mariadb`:
+Limit a command to one service with `S=nginx`, `S=wordpress`, `S=mariadb`, or `S=adminer`:
 
 ```sh
 make stop S=nginx
@@ -89,7 +98,7 @@ make logs S=nginx
 docker compose -f srcs/docker-compose.yml logs nginx
 ```
 
-Healthy means `make ps` shows the three services running (and healthy, when the health check has passed), logs are not in a restart loop, and `https://<domain-name>` loads. `make help` lists every target.
+Healthy means `make ps` shows the four services running (and healthy, when the health check has passed), logs are not in a restart loop, and `https://<domain-name>` loads. `make help` lists every target.
 
 ## Data
 

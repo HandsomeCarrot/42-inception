@@ -45,6 +45,7 @@ make templates
 
    ```text
    127.0.0.1  <domain-name>
+   127.0.0.1  <adminer-subdomain>.<domain-name>
    ```
 
    in `/etc/hosts` (administrator privileges). Other operating systems use a different hosts file.
@@ -72,6 +73,7 @@ Values marked **first install only** are written into persistent storage. Changi
 | Variable | Default | Change? | Used by | Applied |
 | --- | --- | --- | --- | --- |
 | `WORDPRESS_DOMAIN` | none (required) | Set to your `login.42.fr` domain | wordpress, nginx | First install (site URL); NGINX vhost on every start |
+| `ADMINER_SUBDOMAIN` | `adminer` | Optional subdomain for the Adminer vhost | nginx | NGINX vhost on every start |
 | `WORDPRESS_DB_NAME` | `wordpress` | Leave default | mariadb, wordpress | First install only |
 | `WORDPRESS_DB_USER` | `wordpress` | Leave default | mariadb, wordpress | First install only |
 | `WORDPRESS_DB_TABLE_PREFIX` | `wordpress_` | Leave default | wordpress | First install only |
@@ -86,6 +88,7 @@ Values marked **first install only** are written into persistent storage. Changi
 | `NGINX_PORT` | `443` | Leave default (published HTTPS port) | nginx, wordpress | First install (site URL); port publish on every start |
 | `MARIADB_PORT` | `3306` | Leave default (internal) | mariadb, wordpress | First install only |
 | `WORDPRESS_FPM_PORT` | `9000` | Leave default unless it conflicts | wordpress, nginx | Every start |
+| `ADMINER_PORT` | `8080` | Leave default (internal Adminer port) | adminer, nginx | Every start |
 | `DATA_ROOT_PATH` | `/home/vpoka/data` | Set to your storage parent directory | Compose volume devices, Makefile (`dirs` / `rm-dirs`) | Every start |
 | `DATA_DRIVE_DIR` | `database` | Directory name of the MariaDB storage | Compose volume `data-drive`, Makefile | Every start |
 | `WEB_DRIVE_DIR` | `website` | Directory name of the WordPress storage | Compose volume `web-drive`, Makefile | Every start |
@@ -152,13 +155,16 @@ When changing a secret name, environment variable, path, or setup script, update
         │       ├── nginx.conf
         │       ├── nginx_security_headers.conf
         │       └── nginx_expected_key.txt
-        └── wordpress/
-            ├── Dockerfile
-            └── config/
-                ├── entry.sh
-                ├── php-fpm.conf
-                ├── php.ini
-                └── wp-cli.yml
+        ├── wordpress/
+        │   ├── Dockerfile
+        │   └── config/
+        │       ├── entry.sh
+        │       ├── php-fpm.conf
+        │       ├── php.ini
+        │       └── wp-cli.yml
+        └── bonus/
+            └── adminer/
+                └── Dockerfile
 ```
 
 Each Dockerfile builds one service image. Config files define daemon behavior. Each `entry.sh` does runtime work that cannot be finished at image build. MariaDB uses `setup.sql` for database/user provisioning. WordPress uses WP-CLI for install automation. NGINX keeps its expected signing key in a separate file used only while installing NGINX.
@@ -193,7 +199,7 @@ Generated secret files live under `srcs/secrets`. Do not commit them or copy the
 
 Services communicate on Compose networks, not the host network. Compose DNS lets a service reach another by service name without publishing every port.
 
-Host networking would skip container network isolation and make PHP-FPM and MariaDB reachable from the host. NGINX is the only ingress. This project uses two bridge networks: `data-net` (MariaDB ↔ WordPress) and `web-net` (NGINX ↔ WordPress). The database is not on `web-net`.
+Host networking would skip container network isolation and make PHP-FPM and MariaDB reachable from the host. NGINX is the only ingress. This project uses two bridge networks: `data-net` (MariaDB ↔ WordPress, Adminer) and `web-net` (NGINX ↔ WordPress, Adminer). The database is not on `web-net`.
 
 ### Docker volumes vs bind mounts
 
@@ -218,7 +224,7 @@ WordPress + PHP-FPM
 MariaDB
 ```
 
-NGINX is the only host-facing service. It terminates HTTPS and forwards PHP to WordPress/PHP-FPM. WordPress talks to MariaDB by service name. Neither WordPress nor MariaDB publishes a port to the host.
+NGINX is the only host-facing service. It terminates HTTPS, forwards PHP to WordPress/PHP-FPM, and proxies Adminer on its subdomain. WordPress and Adminer talk to MariaDB by service name. Neither WordPress, MariaDB, nor Adminer publishes a port to the host.
 
 ### NGINX image
 
@@ -234,9 +240,13 @@ The entry script connects configuration to the initialized database, leaves an e
 
 ### MariaDB image
 
-The MariaDB image includes MariaDB, `my.cnf`, `setup.sql`, and its entry script. Passwords come from secret-file paths. Compose defines a health check that WordPress waits on (`depends_on: condition: service_healthy`).
+The MariaDB image includes MariaDB, `my.cnf`, `setup.sql`, and its entry script. Passwords come from secret-file paths. Compose defines a health check that WordPress and Adminer wait on (`depends_on: condition: service_healthy`).
 
 The entry script initializes a new data directory only when needed, applies setup SQL, then starts MariaDB in the foreground.
+
+### Adminer image
+
+The Adminer image runs the single-file Adminer on PHP's built-in server, listening on `ADMINER_PORT`. It is reachable only through NGINX's adminer virtual host. Compose defines a health check that NGINX waits on (`depends_on: condition: service_healthy`).
 
 ### Service initialization
 
@@ -267,7 +277,7 @@ Removed by `make fclean` / `make rm-dirs` (the whole `DATA_ROOT_PATH` tree). `ma
 
 Wrong owner or mode on those host directories can block MariaDB init or WordPress writes. Inspect host permissions as well as the mount paths inside the container.
 
-Hostname mapping needed to hit NGINX with the configured domain: [First-time setup](#first-time-setup). Operator warning about `fclean`: [Data](USER_DOC.md#data).
+Hostname mapping needed to hit NGINX with the configured domain and Adminer subdomain: [First-time setup](#first-time-setup). Operator warning about `fclean`: [Data](USER_DOC.md#data).
 
 The stack is IPv4-only: the Compose networks are IPv4 bridges, published ports bind IPv4, and NGINX listens on IPv4. No IPv6 listener is configured.
 
@@ -275,7 +285,7 @@ The stack is IPv4-only: the Compose networks are IPv4 bridges, published ports b
 
 From the repository root, `make <target>` is `docker compose -f srcs/docker-compose.yml` plus arguments. You can run either. `make help` prints the current target list.
 
-`S` limits a command to `nginx`, `wordpress`, or `mariadb`. `C` is the command for `exec` / `run`.
+`S` limits a command to `nginx`, `wordpress`, `mariadb`, or `adminer`. `C` is the command for `exec` / `run`.
 
 | Make | Docker Compose | Notes |
 | --- | --- | --- |

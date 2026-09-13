@@ -4,19 +4,20 @@
 
 ## Description
 
-Inception is a local WordPress deployment built from three Docker images and orchestrated with Docker Compose. The goal is a reproducible HTTPS site whose services are isolated from one another, built locally, and restarted without losing data.
+Inception is a local WordPress deployment built from four Docker images and orchestrated with Docker Compose. The goal is a reproducible HTTPS site whose services are isolated from one another, built locally, and restarted without losing data.
 
 | Service | Role | Reachable from the host |
 | --- | --- | --- |
 | NGINX | HTTPS entry point and reverse proxy | Yes — port 443 |
 | WordPress + PHP-FPM | Application and PHP execution | No — internal network only |
 | MariaDB | WordPress database | No — internal network only |
+| Adminer | Database web UI | Yes — via NGINX on the adminer subdomain |
 
 `Browser → NGINX (HTTPS) → WordPress/PHP-FPM → MariaDB`
 
-Docker is used so each service is a container with its own filesystem, process tree, and lifecycle, without a full guest operating system per service. Compose declares the network, volumes, secrets, and startup order. Only NGINX publishes a port; WordPress and MariaDB stay on private Compose networks.
+Docker is used so each service is a container with its own filesystem, process tree, and lifecycle, without a full guest operating system per service. Compose declares the network, volumes, secrets, and startup order. Only NGINX publishes a port; WordPress, MariaDB, and Adminer stay on private Compose networks.
 
-The images are not pulled from Docker Hub as ready-made WordPress, NGINX, or MariaDB images. Each service is built from sources in this repository: a Dockerfile plus config and an entry script under `srcs/requirements/nginx`, `srcs/requirements/wordpress`, and `srcs/requirements/mariadb`. Compose (`srcs/docker-compose.yml`) and the root `Makefile` wire those images into one stack.
+The images are not pulled from Docker Hub as ready-made WordPress, NGINX, or MariaDB images. Each service is built from sources in this repository: a Dockerfile plus config and entry scripts where needed, under `srcs/requirements/nginx`, `srcs/requirements/wordpress`, `srcs/requirements/mariadb`, and `srcs/requirements/bonus/adminer`. Compose (`srcs/docker-compose.yml`) and the root `Makefile` wire those images into one stack.
 
 ### Design choices
 

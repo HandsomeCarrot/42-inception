@@ -70,12 +70,28 @@ services:
       - web-drive:/home/web-drive:ro
     environment:
       - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
+      - ADMINER_SUBDOMAIN=${ADMINER_SUBDOMAIN:-adminer}
+      - ADMINER_PORT=${ADMINER_PORT:-8080}
       - NGINX_PORT=${NGINX_PORT:-443}
       - WORDPRESS_FPM_PORT=${WORDPRESS_FPM_PORT:-9000}
     networks:
       - web-net
     ports:
       - ${NGINX_PORT:-443}:${NGINX_PORT:-443}
+# -----
+  adminer:
+    build:
+      context: requirements/bonus/adminer/.
+    depends_on:
+      mariadb:
+        condition: service_healthy
+        restart: true
+    restart: always
+    environment:
+      - ADMINER_PORT=${ADMINER_PORT:-8080}
+    networks:
+      - data-net
+      - web-net
 # ==============================================================================
 volumes:
   data-drive:

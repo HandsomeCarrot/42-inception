@@ -29,6 +29,7 @@ SECRETS :=	mariadb_root_password \
 define INCEPTION_ENV_TEMPLATE
 # --- Domain (required) ---
 # WORDPRESS_DOMAIN=vpoka.42.fr
+# ADMINER_SUBDOMAIN=adminer
 
 # --- Database ---
 # WORDPRESS_DB_NAME=wordpress
@@ -49,6 +50,7 @@ define INCEPTION_ENV_TEMPLATE
 # NGINX_PORT=443
 # MARIADB_PORT=3306
 # WORDPRESS_FPM_PORT=9000
+# ADMINER_PORT=8080
 
 # --- Volumes ---
 # DATA_ROOT_PATH=/home/vpoka/data

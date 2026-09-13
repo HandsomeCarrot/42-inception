@@ -31,6 +31,7 @@ RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_exp
 COPY config/nginx.conf /etc/nginx/nginx.conf
 COPY config/wordpress.conf /home/raw_wordpress.conf
 COPY config/nginx_security_headers.conf /etc/nginx/security_headers.conf
+COPY config/adminer.conf /home/raw_adminer.conf
 COPY --chmod=+x config/entry.sh /usr/bin/entry
 
 HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
