@@ -23,19 +23,19 @@ if [ ! -f /etc/nginx/ssl/inception.crt ]; then
 		-keyout /etc/nginx/ssl/inception.key \
 		-out /etc/nginx/ssl/inception.crt \
 		-subj "/CN=$WORDPRESS_DOMAIN" \
-		-addext "subjectAltName=DNS:$WORDPRESS_DOMAIN,DNS:www.$WORDPRESS_DOMAIN" \
+		-addext "subjectAltName=DNS:$WORDPRESS_DOMAIN,DNS:*.$WORDPRESS_DOMAIN" \
 	> /dev/null 2>&1
 	log "  -> certificate created successfully"
 else
 	log "  -> present"
 fi
 
-log "Checking if NGINX configuration file needs environment variable substitution"
-if [ -f /etc/nginx/raw_nginx.conf ]; then
+log "Checking if the WordPress site configuration needs environment variable substitution"
+if [ -f /home/raw_wordpress.conf ]; then
 	log "  -> replacing environment variables"
-	envsubst '$WORDPRESS_DOMAIN $NGINX_PORT $WORDPRESS_FPM_PORT' < /etc/nginx/raw_nginx.conf > /etc/nginx/nginx.conf
+	envsubst '$WORDPRESS_DOMAIN $NGINX_PORT $WORDPRESS_FPM_PORT' < /home/raw_wordpress.conf > /etc/nginx/conf.d/wordpress.conf
 	log "  -> deleting unsubstituted file"
-	rm /etc/nginx/raw_nginx.conf
+	rm /home/raw_wordpress.conf
 	log "  -> done!"
 else
 	log "  -> already substituted"

@@ -23,11 +23,13 @@ RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_exp
 	echo "@nginx https://nginx.org/packages/alpine/v3.23/main" >> /etc/apk/repositories; \
 	apk add --no-cache nginx@nginx; \
 	# placeholder key; real cert/key generated at first start by entry.sh
-	mkdir -p /etc/nginx/ssl/; \
-	touch /etc/nginx/ssl/inception.key;
+	mkdir -p /etc/nginx/ssl/ /etc/nginx/conf.d/; \
+	touch /etc/nginx/ssl/inception.key; \
+	mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.template
 
-# raw_nginx.conf is an envsubst template, rendered to nginx.conf by entry.sh
-COPY config/nginx.conf /etc/nginx/raw_nginx.conf
+# wordpress.conf is an envsubst template, rendered to conf.d/wordpress.conf by entry.sh
+COPY config/nginx.conf /etc/nginx/nginx.conf
+COPY config/wordpress.conf /home/raw_wordpress.conf
 COPY config/nginx_security_headers.conf /etc/nginx/security_headers.conf
 COPY --chmod=+x config/entry.sh /usr/bin/entry
 
