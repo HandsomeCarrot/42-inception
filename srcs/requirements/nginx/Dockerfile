@@ -33,5 +33,8 @@ COPY config/wordpress.conf /home/raw_wordpress.conf
 COPY config/nginx_security_headers.conf /etc/nginx/security_headers.conf
 COPY --chmod=+x config/entry.sh /usr/bin/entry
 
+HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
+	CMD wget -q --no-check-certificate -T 4 -O /dev/null https://127.0.0.1:$NGINX_PORT/readme.html || exit 1
+
 ENTRYPOINT [ "entry" ]
 CMD [ "nginx", "-g", "daemon off;" ]

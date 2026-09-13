@@ -4,21 +4,9 @@ services:
   mariadb:
     build:
       context: ./requirements/mariadb/.
-      tags:
-        - inception-db:1
     restart: always
     volumes:
       - data-drive:/home/data-drive:rw
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mariadb -h 127.0.0.1 -u\"$$WORDPRESS_DB_USER\" -e \"SELECT 1\" \"$$WORDPRESS_DB_NAME\" >/dev/null 2>&1",
-        ]
-      start_period: 30s
-      interval: 30s
-      timeout: 5s
-      retries: 3
     environment:
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
@@ -36,8 +24,6 @@ services:
   wordpress:
     build:
       context: ./requirements/wordpress/.
-      tags:
-        - inception-wp:1
     depends_on:
       mariadb:
         condition: service_healthy
@@ -45,16 +31,6 @@ services:
     restart: always
     volumes:
       - web-drive:/home/web-drive:rw
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect \"localhost:$$WORDPRESS_FPM_PORT\" | grep -q pong",
-        ]
-      start_period: 30s
-      interval: 30s
-      timeout: 5s
-      retries: 3
     environment:
       - WORDPRESS_VERSION=${WORDPRESS_VERSION:-7.0.4}
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
@@ -85,8 +61,6 @@ services:
   nginx:
     build:
       context: requirements/nginx/.
-      tags:
-        - inception-nginx:1
     depends_on:
       wordpress:
         condition: service_healthy
@@ -94,16 +68,6 @@ services:
     restart: always
     volumes:
       - web-drive:/home/web-drive:ro
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget -q --no-check-certificate -T 4 -O /dev/null https://127.0.0.1:$$NGINX_PORT/readme.html || exit 1",
-        ]
-      start_period: 30s
-      interval: 30s
-      timeout: 5s
-      retries: 3
     environment:
       - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
       - NGINX_PORT=${NGINX_PORT:-443}

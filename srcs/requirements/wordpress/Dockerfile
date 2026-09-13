@@ -46,5 +46,8 @@ COPY --chmod=+x ./config/entry.sh /usr/bin/entry
 COPY ./config/php.ini /etc/php85/conf.d/99_inception.ini
 COPY ./config/php-fpm.conf /etc/php85/php-fpm.d/www.conf
 
+HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
+	CMD SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect "localhost:$WORDPRESS_FPM_PORT" | grep -q pong
+
 ENTRYPOINT ["entry"]
 CMD ["php-fpm", "-F"]
