@@ -269,6 +269,8 @@ Wrong owner or mode on those host directories can block MariaDB init or WordPres
 
 Hostname mapping needed to hit NGINX with the configured domain: [First-time setup](#first-time-setup). Operator warning about `fclean`: [Data](USER_DOC.md#data).
 
+The stack is IPv4-only: the Compose networks are IPv4 bridges, published ports bind IPv4, and NGINX listens on IPv4. No IPv6 listener is configured.
+
 ## Makefile and Docker Compose
 
 From the repository root, `make <target>` is `docker compose -f srcs/docker-compose.yml` plus arguments. You can run either. `make help` prints the current target list.

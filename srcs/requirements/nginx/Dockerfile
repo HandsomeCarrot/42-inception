@@ -9,10 +9,9 @@ RUN --mount=type=bind,source=config/nginx_expected_key.txt,target=/tmp/nginx_exp
 	apk add --no-cache \
 		openssl \
 		ca-certificates \
-		curl \
 		gettext-envsubst \
 	; \
-	curl -fsS -o /tmp/nginx_signing.rsa.pub https://nginx.org/keys/nginx_signing.rsa.pub; \
+	wget -q -O /tmp/nginx_signing.rsa.pub https://nginx.org/keys/nginx_signing.rsa.pub; \
 	\
 	openssl rsa -pubin -in /tmp/nginx_signing.rsa.pub -text -noout > /tmp/nginx_deciphered_key.txt; \
 	diff /tmp/nginx_expected_key.txt /tmp/nginx_deciphered_key.txt; \

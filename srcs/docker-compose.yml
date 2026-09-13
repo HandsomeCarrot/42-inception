@@ -5,8 +5,7 @@ services:
     build:
       context: ./requirements/mariadb/.
       tags:
-        - inception-db:1.0
-        - inception-db:latest
+        - inception-db:1
     restart: always
     volumes:
       - data-drive:/home/data-drive:rw
@@ -38,8 +37,7 @@ services:
     build:
       context: ./requirements/wordpress/.
       tags:
-        - inception-wp:1.0
-        - inception-wp:latest
+        - inception-wp:1
     depends_on:
       mariadb:
         condition: service_healthy
@@ -88,8 +86,7 @@ services:
     build:
       context: requirements/nginx/.
       tags:
-        - inception-nginx:1.0
-        - inception-nginx:latest
+        - inception-nginx:1
     depends_on:
       wordpress:
         condition: service_healthy
@@ -101,7 +98,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -fsk --max-time 4 -o /dev/null https://localhost:$$NGINX_PORT/readme.html || exit 1",
+          "wget -q --no-check-certificate -T 4 -O /dev/null https://127.0.0.1:$$NGINX_PORT/readme.html || exit 1",
         ]
       start_period: 30s
       interval: 30s

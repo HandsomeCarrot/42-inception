@@ -2,16 +2,13 @@ FROM alpine:3.23
 
 # install wp-cli with GPG signature verification; .build deps removed in same layer
 RUN	set -eux; \
-	apk --cache=no add \
-		curl \
-	; \
 	apk --cache=no add --virtual .build \
 		gpg \
 		gpg-agent \
 	; \
-	curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar; \
-	curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar.asc; \
-	curl https://raw.githubusercontent.com/wp-cli/builds/gh-pages/wp-cli.pgp | gpg --import; \
+	wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar; \
+	wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar.asc; \
+	wget -q -O - https://raw.githubusercontent.com/wp-cli/builds/gh-pages/wp-cli.pgp | gpg --import; \
 	gpg --verify wp-cli.phar.asc wp-cli.phar; \
 	chmod +x wp-cli.phar; \
 	mv wp-cli.phar /bin/wp; \
