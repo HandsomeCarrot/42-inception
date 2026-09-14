@@ -84,6 +84,7 @@ services:
   adminer:
     build:
       context: requirements/bonus/adminer/.
+    init: true
     depends_on:
       mariadb:
         condition: service_healthy
@@ -98,6 +99,7 @@ services:
   static_website:
     build:
       context: requirements/bonus/static_website/.
+    init: true
     restart: always
     environment:
       - STATIC_PORT=${STATIC_PORT:-8081}
