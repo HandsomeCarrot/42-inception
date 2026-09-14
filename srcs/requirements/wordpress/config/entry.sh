@@ -66,6 +66,14 @@ if ! wp config path >/dev/null 2>&1; then
 	log "  -> wp-config.php created"
 else
 	log "  -> present"
+	log "Checking if correct db host is being used"
+	if [ "$(wp config get DB_HOST)" != "mariadb:${MARIADB_PORT}" ]; then
+		log "  -> differentiates, updating"
+		wp config set DB_HOST "mariadb:${MARIADB_PORT}"
+		log "  -> updated"
+	else
+		log "  -> up to date"
+	fi
 fi
 
 # append port to site url only for non-standard https ports
@@ -87,6 +95,22 @@ if ! wp core is-installed >/dev/null 2>&1; then
 	log "  -> installation complete"
 else
 	log "  -> installed"
+	log "Checking if correct URL is being used as the site-url"
+	if [ "$(wp option get siteurl)" != "$site_url" ]; then
+		log "  -> differentiates, updating"
+		wp option update siteurl "$site_url"
+		log "  -> updated"
+	else
+		log "  -> up to date"
+	fi
+	log "Checking if correct URL is being used as the home-url"
+	if [ "$(wp option get home)" != "$site_url" ]; then
+		log "  -> differentiates, updating"
+		wp option update home "$site_url"
+		log "  -> updated"
+	else
+		log "  -> up to date"
+	fi
 fi
 
 log "Checking if non-admin user exists"

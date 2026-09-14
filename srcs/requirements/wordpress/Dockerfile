@@ -33,13 +33,14 @@ RUN	set -eux; \
 		php85-zip \
 		php85-sodium \
 		php85-iconv \
+		php85-tokenizer \
 	;
 
 # versioned binaries -> unversioned names; unprivileged user for php-fpm
 RUN	set -eux; \
 	ln -s /usr/bin/php85 /usr/bin/php; \
 	ln -s /usr/sbin/php-fpm85 /usr/sbin/php-fpm; \
-	adduser -u 1000 -D -S wordpress;
+	adduser -u 1000 -H -D -S wordpress;
 
 COPY ./config/wp-cli.yml ./wp-cli.yml
 COPY --chmod=+x ./config/entry.sh /usr/bin/entry
