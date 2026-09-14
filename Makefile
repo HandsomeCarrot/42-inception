@@ -65,10 +65,10 @@ endef
 export INCEPTION_ENV_TEMPLATE
 
 # --- Logging helpers --------------------------------------------------
-C_RESET  := \x1b[0m
-C_CYAN   := \x1b[36m
-C_YELLOW := \x1b[33m
-C_BOLD   := \x1b[1m
+C_RESET  := \033[0m
+C_CYAN   := \033[36m
+C_YELLOW := \033[33m
+C_BOLD   := \033[1m
 
 define log_target
 	@printf "$(C_BOLD)$(C_CYAN)==>$(C_RESET) $(C_BOLD)%s$(C_RESET)\n" "$@"

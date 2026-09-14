@@ -5,7 +5,8 @@ FROM alpine:3.23
 RUN set -eux; \
 	apk add --no-cache busybox-extras; \
 	adduser -u 1001 -D -S static; \
-	mkdir -p /home/static
+	mkdir -p /home/static; \
+	chown /home/static/
 
 COPY website/* /home/static/
 
