@@ -7,8 +7,7 @@ RUN set -eux; \
 	adduser -u 1001 -D -S static; \
 	mkdir -p /home/static;
 
-COPY website/* /home/static/
-RUN chown -R static /home/static
+COPY --chown=static website/* /home/static/
 
 HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
 	CMD wget -q -O /dev/null "http://127.0.0.1:$STATIC_PORT/" || exit 1
