@@ -5,10 +5,10 @@ FROM alpine:3.23
 RUN set -eux; \
 	apk add --no-cache busybox-extras; \
 	adduser -u 1001 -D -S static; \
-	mkdir -p /home/static; \
-	chown /home/static/
+	mkdir -p /home/static;
 
 COPY website/* /home/static/
+RUN chown -R static /home/static
 
 HEALTHCHECK --start-period=30s --interval=30s --timeout=5s --retries=3 \
 	CMD wget -q -O /dev/null "http://127.0.0.1:$STATIC_PORT/" || exit 1
