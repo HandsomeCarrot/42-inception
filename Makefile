@@ -270,6 +270,7 @@ hosts: domain-check
 secrets-template:
 	$(log_target)
 	@printf "$(STEP_PREFIX) Creating secret files in $(SECRETS_DIR)\n"
+	@mkdir -p $(SECRETS_DIR)
 	@for secret in $(SECRETS); do \
 		if [ ! -f "$(SECRETS_DIR)/$$secret.txt" ]; then \
 			touch "$(SECRETS_DIR)/$$secret.txt"; \
