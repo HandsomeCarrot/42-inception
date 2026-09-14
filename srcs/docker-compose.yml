@@ -72,6 +72,8 @@ services:
       - WORDPRESS_DOMAIN=${WORDPRESS_DOMAIN:?}
       - ADMINER_SUBDOMAIN=${ADMINER_SUBDOMAIN:-adminer}
       - ADMINER_PORT=${ADMINER_PORT:-8080}
+      - STATIC_SUBDOMAIN=${STATIC_SUBDOMAIN:-static}
+      - STATIC_PORT=${STATIC_PORT:-8081}
       - NGINX_PORT=${NGINX_PORT:-443}
       - WORDPRESS_FPM_PORT=${WORDPRESS_FPM_PORT:-9000}
     networks:
@@ -91,6 +93,15 @@ services:
       - ADMINER_PORT=${ADMINER_PORT:-8080}
     networks:
       - data-net
+      - web-net
+# -----
+  static_website:
+    build:
+      context: requirements/bonus/static_website/.
+    restart: always
+    environment:
+      - STATIC_PORT=${STATIC_PORT:-8081}
+    networks:
       - web-net
 # ==============================================================================
 volumes:

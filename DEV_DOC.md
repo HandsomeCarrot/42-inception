@@ -41,14 +41,21 @@ make templates
    make dirs
    ```
 
-4. Map the domain on Linux:
+4. Map the domains on Linux (administrator privileges):
+
+   ```sh
+   make hosts
+   ```
+
+   It scans `/etc/hosts` for the three configured domains and appends any missing one as `127.0.0.1 <name>` (via `sudo`, skipping entries that already exist):
 
    ```text
    127.0.0.1  <domain-name>
    127.0.0.1  <adminer-subdomain>.<domain-name>
+   127.0.0.1  <static-subdomain>.<domain-name>
    ```
 
-   in `/etc/hosts` (administrator privileges). Other operating systems use a different hosts file.
+   Other operating systems use a different hosts file — add the same mappings by hand there.
 
 5. Build and start (`make` / `make all` runs `check` first: `.env`, secrets, domain, and data directories):
 
@@ -74,6 +81,7 @@ Values marked **first install only** are written into persistent storage. Changi
 | --- | --- | --- | --- | --- |
 | `WORDPRESS_DOMAIN` | none (required) | Set to your `login.42.fr` domain | wordpress, nginx | First install (site URL); NGINX vhost on every start |
 | `ADMINER_SUBDOMAIN` | `adminer` | Optional subdomain for the Adminer vhost | nginx | NGINX vhost on every start |
+| `STATIC_SUBDOMAIN` | `static` | Optional subdomain for the static website vhost | nginx | NGINX vhost on every start |
 | `WORDPRESS_DB_NAME` | `wordpress` | Leave default | mariadb, wordpress | First install only |
 | `WORDPRESS_DB_USER` | `wordpress` | Leave default | mariadb, wordpress | First install only |
 | `WORDPRESS_DB_TABLE_PREFIX` | `wordpress_` | Leave default | wordpress | First install only |
@@ -89,6 +97,7 @@ Values marked **first install only** are written into persistent storage. Changi
 | `MARIADB_PORT` | `3306` | Leave default (internal) | mariadb, wordpress | First install only |
 | `WORDPRESS_FPM_PORT` | `9000` | Leave default unless it conflicts | wordpress, nginx | Every start |
 | `ADMINER_PORT` | `8080` | Leave default (internal Adminer port) | adminer, nginx | Every start |
+| `STATIC_PORT` | `8081` | Leave default (internal static website port) | static_website, nginx | Every start |
 | `DATA_ROOT_PATH` | `/home/vpoka/data` | Set to your storage parent directory | Compose volume devices, Makefile (`dirs` / `rm-dirs`) | Every start |
 | `DATA_DRIVE_DIR` | `database` | Directory name of the MariaDB storage | Compose volume `data-drive`, Makefile | Every start |
 | `WEB_DRIVE_DIR` | `website` | Directory name of the WordPress storage | Compose volume `web-drive`, Makefile | Every start |
@@ -153,6 +162,9 @@ When changing a secret name, environment variable, path, or setup script, update
         │   └── config/
         │       ├── entry.sh
         │       ├── nginx.conf
+        │       ├── wordpress.conf                  # envsubst template
+        │       ├── adminer.conf                    # envsubst template
+        │       ├── static.conf                     # envsubst template
         │       ├── nginx_security_headers.conf
         │       └── nginx_expected_key.txt
         ├── wordpress/
@@ -163,8 +175,12 @@ When changing a secret name, environment variable, path, or setup script, update
         │       ├── php.ini
         │       └── wp-cli.yml
         └── bonus/
-            └── adminer/
-                └── Dockerfile
+            ├── adminer/
+            │   └── Dockerfile
+            └── static_website/
+                ├── Dockerfile
+                └── website/
+                    └── <website-files>
 ```
 
 Each Dockerfile builds one service image. Config files define daemon behavior. Each `entry.sh` does runtime work that cannot be finished at image build. MariaDB uses `setup.sql` for database/user provisioning. WordPress uses WP-CLI for install automation. NGINX keeps its expected signing key in a separate file used only while installing NGINX.
@@ -224,7 +240,7 @@ WordPress + PHP-FPM
 MariaDB
 ```
 
-NGINX is the only host-facing service. It terminates HTTPS, forwards PHP to WordPress/PHP-FPM, and proxies Adminer on its subdomain. WordPress and Adminer talk to MariaDB by service name. Neither WordPress, MariaDB, nor Adminer publishes a port to the host.
+NGINX is the only host-facing service. It terminates HTTPS, forwards PHP to WordPress/PHP-FPM, proxies Adminer on its subdomain, and proxies the static website on its own subdomain. WordPress and Adminer talk to MariaDB by service name. Neither WordPress, MariaDB, Adminer, nor the static website publishes a port to the host.
 
 ### NGINX image
 
@@ -247,6 +263,10 @@ The entry script initializes a new data directory only when needed, applies setu
 ### Adminer image
 
 The Adminer image runs the single-file Adminer on PHP's built-in server, listening on `ADMINER_PORT`. It is reachable only through NGINX's adminer virtual host. Compose defines a health check that NGINX waits on (`depends_on: condition: service_healthy`).
+
+### Static website image
+
+The static website image serves plain HTML/CSS with BusyBox `httpd`, which is part of the Alpine base and needs no extra packages. Files are copied to `/home/static` at build time and served from there; no volume and no entry script are needed because the site is stateless. `httpd -f` runs in the foreground on `STATIC_PORT`, dropping to an unprivileged user via `-u`. It is reachable only through NGINX's static virtual host (`STATIC_SUBDOMAIN`), on the shared wildcard TLS certificate. Compose defines a health check that NGINX waits on (`depends_on: condition: service_healthy`).
 
 ### Service initialization
 
@@ -285,7 +305,7 @@ The stack is IPv4-only: the Compose networks are IPv4 bridges, published ports b
 
 From the repository root, `make <target>` is `docker compose -f srcs/docker-compose.yml` plus arguments. You can run either. `make help` prints the current target list.
 
-`S` limits a command to `nginx`, `wordpress`, `mariadb`, or `adminer`. `C` is the command for `exec` / `run`.
+`S` limits a command to `nginx`, `wordpress`, `mariadb`, `adminer`, or `static_website`. `C` is the command for `exec` / `run`.
 
 | Make | Docker Compose | Notes |
 | --- | --- | --- |
@@ -304,7 +324,7 @@ From the repository root, `make <target>` is `docker compose -f srcs/docker-comp
 | `make re` | `make clean` then `make all` | Rebuilds stack; keeps `.env`, secrets, host dirs |
 | `make fclean` | `make clean` plus delete `.env`, secrets, and `DATA_ROOT_PATH` | Not a Compose command |
 
-Helpers with no Compose equivalent: `make templates`, `make env-template`, `make secrets-template`, `make dirs`, `make check` (`env-check`, `secrets-check`, `dirs-check`, `domain-check`), and the matching `rm-*` targets.
+Helpers with no Compose equivalent: `make templates`, `make env-template`, `make secrets-template`, `make dirs`, `make hosts`, `make check` (`env-check`, `secrets-check`, `dirs-check`, `domain-check`), and the matching `rm-*` targets.
 
 Examples:
 

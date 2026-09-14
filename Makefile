@@ -26,10 +26,14 @@ SECRETS :=	mariadb_root_password \
 			wordpress_admin_password \
 			wordpress_user_password
 
+# Hosts file updated by `make hosts`
+HOSTS_FILE ?= /etc/hosts
+
 define INCEPTION_ENV_TEMPLATE
 # --- Domain (required) ---
 # WORDPRESS_DOMAIN=vpoka.42.fr
 # ADMINER_SUBDOMAIN=adminer
+# STATIC_SUBDOMAIN=static
 
 # --- Database ---
 # WORDPRESS_DB_NAME=wordpress
@@ -51,6 +55,7 @@ define INCEPTION_ENV_TEMPLATE
 # MARIADB_PORT=3306
 # WORDPRESS_FPM_PORT=9000
 # ADMINER_PORT=8080
+# STATIC_PORT=8081
 
 # --- Volumes ---
 # DATA_ROOT_PATH=/home/vpoka/data
@@ -72,7 +77,7 @@ endef
 STEP_PREFIX := \t$(C_CYAN)->$(C_RESET)
 
 # --- Default rules ----------------------------------------------------
-.PHONY: all check env-check secrets-check dirs-check domain-check clean fclean re up attached down start stop restart build pause unpause ps logs exec run templates env-template dirs secrets-template rm-dirs rm-env rm-secrets help
+.PHONY: all check env-check secrets-check dirs-check domain-check clean fclean re up attached down start stop restart build pause unpause ps logs exec run templates env-template dirs hosts secrets-template rm-dirs rm-env rm-secrets help
 
 all: check
 	$(log_target)
@@ -242,6 +247,26 @@ dirs:
 		printf "$(STEP_PREFIX) '$(DATA_ROOT_PATH)/$(WEB_DRIVE_DIR)' already exists\n"; \
 	fi
 
+hosts: domain-check
+	$(log_target)
+	@printf "$(STEP_PREFIX) Checking '$(HOSTS_FILE)' for configured domains (requires sudo; you may be prompted for your password)\n"
+	@fail=0; \
+	for domain in "$(WORDPRESS_DOMAIN)" "$(or $(ADMINER_SUBDOMAIN),adminer).$(WORDPRESS_DOMAIN)" "$(or $(STATIC_SUBDOMAIN),static).$(WORDPRESS_DOMAIN)"; do \
+		esc=$$(printf '%s' "$$domain" | sed 's/\./\\./g'); \
+		if grep -qE "[[:space:]]$$esc([[:space:]]|$$)" "$(HOSTS_FILE)" 2>/dev/null; then \
+			printf "$(STEP_PREFIX) found '$$domain'\n"; \
+		else \
+			printf "$(STEP_PREFIX) missing '$$domain' -> appending '127.0.0.1\t$$domain' to '$(HOSTS_FILE)' (sudo)\n"; \
+			if printf '127.0.0.1\t%s\n' "$$domain" | sudo tee -a "$(HOSTS_FILE)" > /dev/null; then \
+				printf "$(STEP_PREFIX) added '$$domain'\n"; \
+			else \
+				printf "$(C_YELLOW)[ERROR] could not update '$(HOSTS_FILE)' (sudo failed)$(C_RESET)\n"; \
+				fail=1; \
+			fi; \
+		fi; \
+	done; \
+	exit $$fail
+
 secrets-template:
 	$(log_target)
 	@printf "$(STEP_PREFIX) Creating secret files in $(SECRETS_DIR)\n"
@@ -293,7 +318,7 @@ help:
 	@printf "$(C_BOLD)- Optional variables$(C_RESET) %s\n"
 	@printf "  - S=<service>   : Limit the command to one service\n"
 	@printf "                      - Used by: exec, run, start, stop, restart, pause, unpause, ps, logs\n"
-	@printf "                      - Possible values: nginx, wordpress, mariadb\n"
+	@printf "                      - Possible values: nginx, wordpress, mariadb, adminer, static_website\n"
 	@printf "  - C=\"<command>\" : Command to run (exec/run only).\n"
 	@printf "                      - Examples: C=\"ls -la\"  C=\"mysql -u root -p\"\n"
 	@printf "$(C_BOLD)- Extra commands$(C_RESET) %s\n"
@@ -306,6 +331,7 @@ help:
 	@printf "  - env-template     : Generate srcs/.env from template (skips if exists)\n"
 	@printf "  - secrets-template : Generate missing secret placeholder files\n"
 	@printf "  - dirs             : Create host data directories if missing\n"
+	@printf "  - hosts            : Add missing domain entries to /etc/hosts (uses sudo)\n"
 	@printf "  -----\n"
 	@printf "  - rm-dirs       : Remove the host data directory (all persistent data)\n"
 	@printf "  - rm-env        : Remove srcs/.env\n"

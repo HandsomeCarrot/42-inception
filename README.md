@@ -12,12 +12,14 @@ Inception is a local WordPress deployment built from four Docker images and orch
 | WordPress + PHP-FPM | Application and PHP execution | No — internal network only |
 | MariaDB | WordPress database | No — internal network only |
 | Adminer | Database web UI | Yes — via NGINX on the adminer subdomain |
+| Static website | Static HTML/CSS served by BusyBox httpd | Yes — via NGINX on the static subdomain |
 
 `Browser → NGINX (HTTPS) → WordPress/PHP-FPM → MariaDB`
+`Browser → NGINX (HTTPS) → Adminer / static_website`
 
-Docker is used so each service is a container with its own filesystem, process tree, and lifecycle, without a full guest operating system per service. Compose declares the network, volumes, secrets, and startup order. Only NGINX publishes a port; WordPress, MariaDB, and Adminer stay on private Compose networks.
+Docker is used so each service is a container with its own filesystem, process tree, and lifecycle, without a full guest operating system per service. Compose declares the network, volumes, secrets, and startup order. Only NGINX publishes a port; WordPress, MariaDB, Adminer, and the static website stay on private Compose networks.
 
-The images are not pulled from Docker Hub as ready-made WordPress, NGINX, or MariaDB images. Each service is built from sources in this repository: a Dockerfile plus config and entry scripts where needed, under `srcs/requirements/nginx`, `srcs/requirements/wordpress`, `srcs/requirements/mariadb`, and `srcs/requirements/bonus/adminer`. Compose (`srcs/docker-compose.yml`) and the root `Makefile` wire those images into one stack.
+The images are not pulled from Docker Hub as ready-made WordPress, NGINX, or MariaDB images. Each service is built from sources in this repository: a Dockerfile plus config and entry scripts where needed, under `srcs/requirements/nginx`, `srcs/requirements/wordpress`, `srcs/requirements/mariadb`, `srcs/requirements/bonus/adminer`, and `srcs/requirements/bonus/static_website`. Compose (`srcs/docker-compose.yml`) and the root `Makefile` wire those images into one stack.
 
 ### Design choices
 

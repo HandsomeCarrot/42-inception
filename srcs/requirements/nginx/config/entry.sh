@@ -31,21 +31,26 @@ else
 fi
 
 log "Checking if the site configurations need environment variable substitution"
-if [ -f /home/raw_wordpress.conf ]; then
+if [ -f /home/wordpress.conf ]; then
 	log "  -> replacing environment variables in wordpress.conf"
-	envsubst '$WORDPRESS_DOMAIN $NGINX_PORT $WORDPRESS_FPM_PORT' < /home/raw_wordpress.conf > /etc/nginx/conf.d/wordpress.conf
+	envsubst '$WORDPRESS_DOMAIN $NGINX_PORT $WORDPRESS_FPM_PORT' < /home/wordpress.conf > /etc/nginx/conf.d/wordpress.conf
+	rm /home/wordpress.conf
 else
 	log "  -> wordpress.conf already substituted"
 fi
-if [ -f /home/raw_adminer.conf ]; then
+if [ -f /home/adminer.conf ]; then
 	log "  -> replacing environment variables in adminer.conf"
-	envsubst '$ADMINER_SUBDOMAIN $WORDPRESS_DOMAIN $ADMINER_PORT $NGINX_PORT' < /home/raw_adminer.conf > /etc/nginx/conf.d/adminer.conf
+	envsubst '$ADMINER_SUBDOMAIN $WORDPRESS_DOMAIN $ADMINER_PORT $NGINX_PORT' < /home/adminer.conf > /etc/nginx/conf.d/adminer.conf
+	rm /home/adminer.conf
 else
 	log "  -> adminer.conf already substituted"
 fi
-if [ -f /home/raw_wordpress.conf ] || [ -f /home/raw_adminer.conf ]; then
-	log "  -> deleting unsubstituted files"
-	rm /home/raw_*.conf
+if [ -f /home/static.conf ]; then
+	log "  -> replacing environment variables in static.conf"
+	envsubst '$STATIC_SUBDOMAIN $WORDPRESS_DOMAIN $STATIC_PORT $NGINX_PORT' < /home/static.conf > /etc/nginx/conf.d/static.conf
+	rm /home/static.conf
+else
+	log "  -> static.conf already substituted"
 fi
 log "  -> done!"
 
